@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ruwan AI — Ek shaant, seedha AI saathi</title>
+<meta name="description" content="Ruwan AI: Hindi, English aur Hinglish mein seedha, honest, anti-addictive AI madad." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Ruwan AI</span>
+      </div>
+      <p class="brand-tagline">Seedha jawab. Koi trap nahi.</p>
+
+      <div class="controls-row">
+        <label class="control">
+          <span class="control-label">Language</span>
+          <select id="languageSelect" class="control-select">
+            <option value="auto" selected>Auto (Hindi/Hinglish/English)</option>
+            <option value="english">English only</option>
+            <option value="hindi">Hindi/Hinglish only</option>
+          </select>
+        </label>
+
+        <label class="control">
+          <span class="control-label">Mode</span>
+          <select id="modeSelect" class="control-select">
+            <option value="general" selected>General</option>
+            <option value="professional">Professional</option>
+            <option value="college">College Student</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <main class="chat-area" id="chatArea" aria-live="polite">
+      <div class="msg msg--ai">
+        <div class="msg-bubble">
+          Namaste. Main Ruwan AI hoon — seedhe, honest jawab dene wala saathi.<br>
+          Aap kaun hain aur aaj kis kaam mein madad chahiye? (Jaise: student, job-seeker, ya kuch aur)
+        </div>
+      </div>
+    </main>
+
+    <form class="composer" id="composerForm">
+      <textarea
+        id="messageInput"
+        class="composer-input"
+        placeholder="Apni baat Hindi, English ya Hinglish mein likhein..."
+        rows="1"
+        aria-label="Apna message likhein"
+      ></textarea>
+      <button type="submit" class="send-btn" id="sendBtn" aria-label="Bhejein">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </form>
+
+    <p class="footnote">Ruwan AI galtiyaan kar sakta hai. Zaroori faislon ke liye khud verify karein.</p>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
