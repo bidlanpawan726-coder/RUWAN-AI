@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,33 @@ app.use(express.static("public"));
 // card needed, get a free key at https://aistudio.google.com/apikey
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MODEL = "gemini-3.6-flash";
+
+// ---------------------------------------------------------------------------
+// GOOGLE LOGIN — this Client ID is public (it's meant to be embedded in the
+// page), set as an environment variable so it's easy to change without
+// editing code. Get one from https://console.cloud.google.com/apis/credentials
+// ---------------------------------------------------------------------------
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const authClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+// Serves the Client ID to the frontend so it doesn't need to be hardcoded
+// in index.html (keeps it in one place: the environment variable).
+app.get("/api/config", (req, res) => {
+  res.json({ googleClientId: GOOGLE_CLIENT_ID || null });
+});
+
+async function verifyGoogleToken(idToken) {
+  if (!authClient) return null;
+  try {
+    const ticket = await authClient.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    return ticket.getPayload(); // contains email, name, etc.
+  } catch (err) {
+    return null;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // SYSTEM PROMPT — this defines Ruwan AI's personality and rules.
@@ -136,6 +164,19 @@ app.post("/api/chat", async (req, res) => {
   try {
     if (!GEMINI_API_KEY) {
       return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
+    }
+
+    // Require a valid Google login before allowing any AI request, if
+    // Google login has been configured (GOOGLE_CLIENT_ID is set).
+    if (authClient) {
+      const idToken = req.body.idToken;
+      if (!idToken) {
+        return res.status(401).json({ error: "Please sign in with Google to chat." });
+      }
+      const payload = await verifyGoogleToken(idToken);
+      if (!payload) {
+        return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
+      }
     }
 
     const { messages, language, mode } = req.body;
