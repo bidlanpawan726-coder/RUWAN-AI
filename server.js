@@ -9,21 +9,12 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static("public"));
 
-// Using Google Gemini's free-tier API instead of a paid API — no credit
-// card needed, get a free key at https://aistudio.google.com/apikey
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MODEL = "gemini-3.6-flash";
 
-// ---------------------------------------------------------------------------
-// GOOGLE LOGIN — this Client ID is public (it's meant to be embedded in the
-// page), set as an environment variable so it's easy to change without
-// editing code. Get one from https://console.cloud.google.com/apis/credentials
-// ---------------------------------------------------------------------------
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const authClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
-// Serves the Client ID to the frontend so it doesn't need to be hardcoded
-// in index.html (keeps it in one place: the environment variable).
 app.get("/api/config", (req, res) => {
   res.json({ googleClientId: GOOGLE_CLIENT_ID || null });
 });
@@ -35,16 +26,12 @@ async function verifyGoogleToken(idToken) {
       idToken,
       audience: GOOGLE_CLIENT_ID,
     });
-    return ticket.getPayload(); // contains email, name, etc.
+    return ticket.getPayload();
   } catch (err) {
     return null;
   }
 }
 
-// ---------------------------------------------------------------------------
-// SYSTEM PROMPT — this defines Ruwan AI's personality and rules.
-// Edit the BRAND_NAME below to rename your assistant.
-// ---------------------------------------------------------------------------
 const BRAND_NAME = "Ruwan AI";
 
 const BASE_SYSTEM_PROMPT = `
@@ -103,11 +90,8 @@ SAFETY & SCOPE:
   trusted person or a helpline, and continue to engage supportively.
 `.trim();
 
-// ---------------------------------------------------------------------------
-// LANGUAGE OVERRIDES — chosen by the user via the dropdown in the header.
-// ---------------------------------------------------------------------------
 const LANGUAGE_INSTRUCTIONS = {
-  auto: "", // base prompt already handles auto-detection
+  auto: "",
   english: `
 LANGUAGE OVERRIDE:
 - Reply in clear, simple English ONLY for this entire conversation, even if
@@ -119,11 +103,8 @@ LANGUAGE OVERRIDE:
   the user writes in English. Keep vocabulary everyday and easy.`,
 };
 
-// ---------------------------------------------------------------------------
-// MODE OVERRIDES — chosen by the user via the dropdown in the header.
-// ---------------------------------------------------------------------------
 const MODE_INSTRUCTIONS = {
-  general: "", // base prompt already covers the general/default behaviour
+  general: "",
 
   professional: `
 MODE OVERRIDE — PROFESSIONAL MODE:
@@ -139,96 +120,4 @@ MODE OVERRIDE — PROFESSIONAL MODE:
 
   college: `
 MODE OVERRIDE — COLLEGE STUDENT MODE:
-- The user is a college/university student. Assume questions may relate to
-  assignments, exam prep, projects, internships, or career planning after
-  graduation.
-- For homework, assignments, or exam-prep questions: use the "Helpful but
-  Strict Teacher" persona — explain concepts step by step and prompt the
-  student to attempt the next step themselves, rather than just handing over
-  a finished answer or essay they could submit as their own work.
-- For non-academic questions (internships, resumes, planning), give direct,
-  practical answers suited to a college student's situation.
-- Keep tone encouraging and peer-like, but still concise (3–5 lines) per the
-  base style rules.`,
-};
-
-function buildSystemPrompt(language, mode) {
-  const languageBlock = LANGUAGE_INSTRUCTIONS[language] || "";
-  const modeBlock = MODE_INSTRUCTIONS[mode] || "";
-  return [BASE_SYSTEM_PROMPT, languageBlock, modeBlock]
-    .filter(Boolean)
-    .join("\n\n");
-}
-
-app.post("/api/chat", async (req, res) => {
-  try {
-    if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
-    }
-
-    // Require a valid Google login before allowing any AI request, if
-    // Google login has been configured (GOOGLE_CLIENT_ID is set).
-    if (authClient) {
-      const idToken = req.body.idToken;
-      if (!idToken) {
-        return res.status(401).json({ error: "Please sign in with Google to chat." });
-      }
-      const payload = await verifyGoogleToken(idToken);
-      if (!payload) {
-        return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
-      }
-    }
-
-    const { messages, language, mode } = req.body;
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "messages array is required." });
-    }
-
-    const safeLanguage = LANGUAGE_INSTRUCTIONS.hasOwnProperty(language) ? language : "auto";
-    const safeMode = MODE_INSTRUCTIONS.hasOwnProperty(mode) ? mode : "general";
-    const systemPrompt = buildSystemPrompt(safeLanguage, safeMode);
-
-    // Basic safety: cap conversation length sent to the API
-    const trimmedMessages = messages.slice(-30);
-
-    // Gemini uses "user"/"model" roles (not "assistant") and a "parts" array
-    // instead of plain "content" strings.
-    const geminiContents = trimmedMessages.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: geminiContents,
-        generationConfig: { maxOutputTokens: 600 },
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Gemini API error:", response.status, errText);
-      return res.status(502).json({ error: "Upstream AI service error." });
-    }
-
-    const data = await response.json();
-    const replyText =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ||
-      "Maaf karna, jawab generate nahi ho paaya.";
-
-    res.json({ reply: replyText });
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: "Something went wrong on the server." });
-  }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`${BRAND_NAME} server running on port ${PORT}`);
-});
+- The user is a college/university
