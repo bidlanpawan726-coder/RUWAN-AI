@@ -11,7 +11,7 @@ app.use(express.static("public"));
 // Using Google Gemini's free-tier API instead of a paid API — no credit
 // card needed, get a free key at https://aistudio.google.com/apikey
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-3.6-flash";
 
 // ---------------------------------------------------------------------------
 // SYSTEM PROMPT — this defines Ruwan AI's personality and rules.
