@@ -1,14 +1,29 @@
+let idToken = null;
+
+function handleCredentialResponse(response) {
+  idToken = response.credential;
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appShell").style.display = "";
+  const payload = JSON.parse(atob(idToken.split(".")[1]));
+  document.getElementById("userEmail").textContent = payload.email || "";
+}
+
+document.getElementById("signOutBtn").addEventListener("click", () => {
+  idToken = null;
+  document.getElementById("appShell").style.display = "none";
+  document.getElementById("loginScreen").style.display = "";
+  google.accounts.id.disableAutoSelect();
+});
+
 const chatArea = document.getElementById("chatArea");
 const form = document.getElementById("composerForm");
 const input = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const languageSelect = document.getElementById("languageSelect");
 const modeSelect = document.getElementById("modeSelect");
-
 // Full running history sent to the backend on every request.
 // (The backend/API has no memory between calls, so we resend context each time.)
 let history = [];
-
 function addMessage(role, text) {
   const wrapper = document.createElement("div");
   wrapper.className = `msg msg--${role === "user" ? "user" : "ai"}`;
@@ -20,7 +35,6 @@ function addMessage(role, text) {
   chatArea.scrollTop = chatArea.scrollHeight;
   return wrapper;
 }
-
 function addTypingIndicator() {
   const wrapper = document.createElement("div");
   wrapper.className = "msg msg--ai msg--typing";
@@ -32,16 +46,13 @@ function addTypingIndicator() {
   chatArea.scrollTop = chatArea.scrollHeight;
   return wrapper;
 }
-
 async function sendMessage(text) {
   history.push({ role: "user", content: text });
   addMessage("user", text);
   input.value = "";
   autoResize();
   sendBtn.disabled = true;
-
   const typingEl = addTypingIndicator();
-
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -50,17 +61,15 @@ async function sendMessage(text) {
         messages: history,
         language: languageSelect.value,
         mode: modeSelect.value,
+        idToken: idToken,
       }),
     });
-
     const data = await res.json();
     typingEl.remove();
-
     if (!res.ok) {
       addMessage("ai", data.error || "Kuch gadbad ho gayi. Thodi der baad try karein.");
       return;
     }
-
     history.push({ role: "assistant", content: data.reply });
     addMessage("ai", data.reply);
   } catch (err) {
@@ -70,14 +79,12 @@ async function sendMessage(text) {
     sendBtn.disabled = false;
   }
 }
-
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = input.value.trim();
   if (!text) return;
   sendMessage(text);
 });
-
 // Enter to send, Shift+Enter for new line
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
@@ -85,7 +92,6 @@ input.addEventListener("keydown", (e) => {
     form.requestSubmit();
   }
 });
-
 function autoResize() {
   input.style.height = "auto";
   input.style.height = Math.min(input.scrollHeight, 140) + "px";
