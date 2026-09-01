@@ -10,9 +10,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: "275821245035-jvhiubvnap6689ohf4n1mjkaa65j2lkp.apps.googleusercontent.com",
+      callback: handleCredentialResponse
+    });
+    google.accounts.id.renderButton(
+      document.getElementById("googleSignInButton"),
+      { theme: "outline", size: "large" }
+    );
+  };
+</script>
 </head>
 <body>
-
   <div class="login-screen" id="loginScreen">
     <div class="login-card">
       <img src="logo.jpg" alt="Ruwan AI" class="login-logo-img" />
@@ -21,21 +32,17 @@
       <div id="googleSignInButton"></div>
     </div>
   </div>
-
   <div class="app-shell" id="appShell" style="display:none;">
-
     <header class="top-bar">
       <div class="brand">
         <img src="logo.jpg" alt="" class="brand-mark-img" aria-hidden="true" />
         <span class="brand-name">Ruwan AI</span>
       </div>
       <p class="brand-tagline">Seedha jawab. Koi trap nahi.</p>
-
       <div class="user-row">
         <span class="user-email" id="userEmail"></span>
         <button type="button" class="signout-btn" id="signOutBtn">Sign out</button>
       </div>
-
       <div class="controls-row">
         <label class="control">
           <span class="control-label">Language</span>
@@ -45,7 +52,6 @@
             <option value="hindi">Hindi/Hinglish only</option>
           </select>
         </label>
-
         <label class="control">
           <span class="control-label">Mode</span>
           <select id="modeSelect" class="control-select">
@@ -57,7 +63,6 @@
         </label>
       </div>
     </header>
-
     <main class="chat-area" id="chatArea" aria-live="polite">
       <div class="msg msg--ai">
         <div class="msg-bubble">
@@ -66,7 +71,6 @@
         </div>
       </div>
     </main>
-
     <form class="composer" id="composerForm">
       <textarea
         id="messageInput"
@@ -81,10 +85,8 @@
         </svg>
       </button>
     </form>
-
     <p class="footnote">Ruwan AI galtiyaan kar sakta hai. Zaroori faislon ke liye khud verify karein.</p>
   </div>
-
 <script src="script.js"></script>
 </body>
 </html>
