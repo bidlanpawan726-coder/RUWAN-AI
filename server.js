@@ -57,12 +57,15 @@ const MODE_FILES = {
   research: "mode-research.txt",
 };
 
+const SEARCH_ENABLED_MODES = { research: true, college: true };
+
 function buildSystemPrompt(language, mode) {
   const parts = [BASE_SYSTEM_PROMPT];
   const langFile = LANGUAGE_FILES[language];
   if (langFile) parts.push(readPromptFile(langFile));
   const modeFile = MODE_FILES[mode];
   if (modeFile) parts.push(readPromptFile(modeFile));
+  parts.push(readPromptFile("youtube-suggestion.txt"));
   return parts.filter(Boolean).join("\n\n");
 }
 
@@ -104,16 +107,22 @@ app.post("/api/chat", async (req, res) => {
       };
     });
 
+    const requestBody = {
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: geminiContents,
+      generationConfig: { maxOutputTokens: 800 },
+    };
+
+    if (SEARCH_ENABLED_MODES[safeMode]) {
+      requestBody.tools = [{ google_search: {} }];
+    }
+
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + GEMINI_API_KEY;
 
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: geminiContents,
-        generationConfig: { maxOutputTokens: 600 },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -125,7 +134,7 @@ app.post("/api/chat", async (req, res) => {
     const data = await response.json();
     let replyText = "Maaf karna, jawab generate nahi ho paaya.";
     if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-      replyText = data.candidates[0].content.parts.map(function (p) { return p.text; }).join("");
+      replyText = data.candidates[0].content.parts.map(function (p) { return p.text || ""; }).join("");
     }
 
     res.json({ reply: replyText });
