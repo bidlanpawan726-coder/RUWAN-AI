@@ -90,3 +90,43 @@
 <script src="script.js"></script>
 </body>
 </html>
+<!-- NAYE FEATURES SECTION -->
+<div id="new-features-section" style="padding: 15px; background: #f9f9f9; border-radius: 8px; margin-top: 20px;">
+
+    <!-- 1. Search -->
+    <div style="margin-bottom: 15px;">
+        <h3>🔎 Internet Research</h3>
+        <input type="text" id="searchQuery" placeholder="Kuch bhi search karein...">
+        <button onclick="searchWeb()">Search</button>
+    </div>
+
+    <!-- 2. Voice -->
+    <div style="margin-bottom: 15px;">
+        <h3>🎤 Voice Input</h3>
+        <button onclick="startVoice()">Bolein</button>
+        <p id="voiceText">Aapka bolne wala text yahan aayega...</p>
+    </div>
+
+    <!-- 3. Camera -->
+    <div style="margin-bottom: 15px;">
+        <h3>📷 Camera / Photo</h3>
+        <button onclick="startCamera()">Camera Start Karein</button>
+        <video id="webcam" autoplay playsinline style="max-width:300px; display:block; margin-top:5px;"></video>
+        <button onclick="takePhoto()" style="margin-top:5px;">Photo Kheenchein</button>
+        <canvas id="canvas" style="max-width:300px; display:block;"></canvas>
+    </div>
+
+    <!-- 4 & 5. Maps & Navigation -->
+    <div style="margin-bottom: 15px;">
+        <h3>📍 Maps & 🚗 Navigation</h3>
+        <button onclick="getLocation()">Live Location Dekhein</button>
+        <div id="mapContainer"></div>
+        <br>
+        <input type="text" id="destination" placeholder="Destination (e.g. Delhi)">
+        <button onclick="getDirections()">Directions</button>
+    </div>
+
+</div>
+
+<!-- Nayi JS File Link -->
+<script src="extra-features.js"></script>
