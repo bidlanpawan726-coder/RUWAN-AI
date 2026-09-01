@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const fs = require("fs");
 const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
@@ -32,14 +33,109 @@ async function verifyGoogleToken(idToken) {
   }
 }
 
-const BRAND_NAME = "Ruwan AI";
+function readPromptFile(filename) {
+  try {
+    return fs.readFileSync(filename, "utf8").trim();
+  } catch (err) {
+    return "";
+  }
+}
 
-const BASE_SYSTEM_PROMPT = "You are " + BRAND_NAME + ", a mindful, anti-addictive, and respectful AI guide whose job is to give people quick, honest, useful help and then get out of their way.\n\n" +
-"LANGUAGE (default — may be overridden by a language setting below):\n" +
-"- Fully support Hindi, English, and Hinglish.\n" +
-"- If the user writes in Hindi or Hinglish, reply in simple, everyday Hinglish (Hindi written in Roman script) or simple Hindi. Avoid heavy/formal vocabulary.\n" +
-"- If the user writes in English, reply in simple, clear English.\n\n" +
-"ONBOARDING & PERSONA (default — may be overridden by a mode setting below):\n" +
-"- For a new user's first message, briefly ask who they are and what they want help with today (e.g. student, job-seeker, general use) — one short question.\n" +
-"- If the user is a student asking for homework help, switch to a Helpful but Strict Teacher persona: do NOT just give the final answer. Explain the concept step by step and ask them to try the next step themselves, so they actually learn instead of just copying an answer.\n\n" +
-"HANDLI
+const BRAND_NAME = "Ruwan AI";
+const BASE_SYSTEM_PROMPT = readPromptFile("prompt.txt");
+
+const LANGUAGE_FILES = {
+  auto: null,
+  english: "lang-english.txt",
+  hindi: "lang-hindi.txt",
+};
+
+const MODE_FILES = {
+  general: null,
+  professional: "mode-professional.txt",
+  college: "mode-college.txt",
+  research: "mode-research.txt",
+};
+
+function buildSystemPrompt(language, mode) {
+  const parts = [BASE_SYSTEM_PROMPT];
+  const langFile = LANGUAGE_FILES[language];
+  if (langFile) parts.push(readPromptFile(langFile));
+  const modeFile = MODE_FILES[mode];
+  if (modeFile) parts.push(readPromptFile(modeFile));
+  return parts.filter(Boolean).join("\n\n");
+}
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
+    }
+
+    if (authClient) {
+      const idToken = req.body.idToken;
+      if (!idToken) {
+        return res.status(401).json({ error: "Please sign in with Google to chat." });
+      }
+      const payload = await verifyGoogleToken(idToken);
+      if (!payload) {
+        return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
+      }
+    }
+
+    const messages = req.body.messages;
+    const language = req.body.language;
+    const mode = req.body.mode;
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "messages array is required." });
+    }
+
+    const safeLanguage = LANGUAGE_FILES.hasOwnProperty(language) ? language : "auto";
+    const safeMode = MODE_FILES.hasOwnProperty(mode) ? mode : "general";
+    const systemPrompt = buildSystemPrompt(safeLanguage, safeMode);
+
+    const trimmedMessages = messages.slice(-30);
+
+    const geminiContents = trimmedMessages.map(function (m) {
+      return {
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      };
+    });
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + GEMINI_API_KEY;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiContents,
+        generationConfig: { maxOutputTokens: 600 },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Gemini API error:", response.status, errText);
+      return res.status(502).json({ error: "Upstream AI service error." });
+    }
+
+    const data = await response.json();
+    let replyText = "Maaf karna, jawab generate nahi ho paaya.";
+    if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      replyText = data.candidates[0].content.parts.map(function (p) { return p.text; }).join("");
+    }
+
+    res.json({ reply: replyText });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({ error: "Something went wrong on the server." });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, function () {
+  console.log(BRAND_NAME + " server running on port " + PORT);
+});
