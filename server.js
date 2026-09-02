@@ -7,7 +7,7 @@ const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "10mb" })); // image ke liye limit badhaya
 app.use(express.static("public"));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -50,14 +50,27 @@ const LANGUAGE_FILES = {
   hindi: "lang-hindi.txt",
 };
 
+// Naye modes add kiye — agar in naam ki .txt files exist nahi karti,
+// readPromptFile khali string return karega (koi error nahi aayega),
+// bas base prompt hi use hoga jab tak aap ye files na banao.
 const MODE_FILES = {
   general: null,
   professional: "mode-professional.txt",
   college: "mode-college.txt",
   research: "mode-research.txt",
+  navigation: "mode-navigation.txt",
+  career: "mode-career.txt",
+  learning: "mode-learning.txt",
 };
 
-const SEARCH_ENABLED_MODES = { research: true, college: true };
+// Ye modes automatically Google Search grounding use karenge
+const SEARCH_ENABLED_MODES = {
+  research: true,
+  college: true,
+  navigation: true,
+  career: true,
+  learning: true,
+};
 
 function buildSystemPrompt(language, mode) {
   const parts = [BASE_SYSTEM_PROMPT];
@@ -89,6 +102,7 @@ app.post("/api/chat", async (req, res) => {
     const messages = req.body.messages;
     const language = req.body.language;
     const mode = req.body.mode;
+    const image = req.body.image; // { mimeType, data } — base64, optional
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "messages array is required." });
@@ -106,6 +120,19 @@ app.post("/api/chat", async (req, res) => {
         parts: [{ text: m.content }],
       };
     });
+
+    // Agar image bheji gayi hai, use aakhri (latest) user message ke saath jodo
+    if (image && image.data && image.mimeType) {
+      const lastMsg = geminiContents[geminiContents.length - 1];
+      if (lastMsg && lastMsg.role === "user") {
+        lastMsg.parts.push({
+          inline_data: {
+            mime_type: image.mimeType,
+            data: image.data,
+          },
+        });
+      }
+    }
 
     const requestBody = {
       system_instruction: { parts: [{ text: systemPrompt }] },
