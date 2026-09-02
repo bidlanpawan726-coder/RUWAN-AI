@@ -214,31 +214,86 @@
   }
 
   .mode-row {
-    max-width: 640px;
-    margin: 0 auto 10px;
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    display: none;
   }
 
-  .mode-chip {
-    flex-shrink: 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: var(--ink-soft);
+  .active-mode-tag {
+    max-width: 640px;
+    margin: 0 auto 8px;
+    font-size: 11.5px;
+    color: var(--mist-deep);
+    text-align: center;
+    opacity: 0.85;
+    min-height: 14px;
+  }
+
+  .attachment-preview {
+    max-width: 640px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 6px 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
   }
 
-  .mode-chip.active {
-    background: var(--mist-deep);
-    border-color: var(--mist-deep);
-    color: #ffffff;
+  .attachment-preview img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .attachment-preview .remove-att {
+    margin-left: auto;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .icon-btn:hover {
+    background: rgba(111,151,201,0.12);
+    color: var(--mist-deep);
+  }
+
+  .icon-btn.active {
+    color: var(--mist-deep);
+    background: rgba(111,151,201,0.15);
+  }
+
+  .icon-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .icon-btn.recording {
+    color: #d9534f;
+    background: rgba(217,83,79,0.12);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 
   .input-row {
@@ -315,20 +370,36 @@
 
 <main id="chatMain">
   <div class="empty-state" id="emptyState">
-    <p> honest aur anti-addictive AI </p>
+    <p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>
     <div class="empty-mark">RUWAN AI</div>
   </div>
 </main>
 
 <footer>
-  <div class="mode-row" id="modeRow">
-    <span class="mode-chip active" data-mode="general">General</span>
-    <span class="mode-chip" data-mode="professional">Professional</span>
-    <span class="mode-chip" data-mode="college">College</span>
-    <span class="mode-chip" data-mode="research">Research</span>
-  </div>
+  <div class="active-mode-tag" id="activeModeTag"></div>
+  <div id="attachmentPreview"></div>
   <div class="input-row">
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="attachInput" accept="image/*,.txt,.pdf,.doc,.docx" style="display:none">
+
+    <button class="icon-btn" id="attachBtn" title="File attach karo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+    </button>
+
+    <button class="icon-btn" id="cameraBtn" title="Camera se photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </button>
+
     <textarea id="messageInput" placeholder="Apna sawaal likhein..." rows="1"></textarea>
+
+    <button class="icon-btn" id="micBtn" title="Bolke poochein">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+    </button>
+
+    <button class="icon-btn" id="voiceOutBtn" title="AI ki awaaz on/off">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+    </button>
+
     <button class="send" id="sendBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -349,20 +420,161 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const languageSelect = document.getElementById('languageSelect');
-  const modeChips = document.querySelectorAll('.mode-chip');
-  let currentMode = 'general';
-
-  modeChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      modeChips.forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      currentMode = chip.dataset.mode;
-    });
-  });
+  const activeModeTag = document.getElementById('activeModeTag');
+  const attachBtn = document.getElementById('attachBtn');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const micBtn = document.getElementById('micBtn');
+  const voiceOutBtn = document.getElementById('voiceOutBtn');
+  const attachInput = document.getElementById('attachInput');
+  const cameraInput = document.getElementById('cameraInput');
+  const attachmentPreview = document.getElementById('attachmentPreview');
 
   let messages = [];
+  let pendingAttachment = null; // { mimeType, data (base64), name }
+  let voiceOutputOn = false;
 
-  // Google idToken (JWT) decode karke user ki info nikalo
+  // ---------- 1. AUTOMATIC MODE DETECTION (keyword based) ----------
+  const MODE_KEYWORDS = {
+    navigation: ['route', 'kaise jau', 'kaise jaun', 'metro', 'bus se', 'airport', 'station', 'address', 'location', 'direction', 'road', 'nearest', 'paas mein'],
+    college: ['admission', 'college', 'university', 'entrance exam', 'eligibility', 'scholarship', 'fees', 'deadline', 'application form'],
+    career: ['career', 'job', 'resume', 'interview', 'skill', 'course', 'roadmap', 'salary', 'internship'],
+    professional: ['business', 'company', 'client', 'email likho', 'report banao', 'meeting', 'proposal', 'marketing'],
+    learning: ['padhna', 'homework', 'exam', 'subject', 'explain', 'samjhao', 'notes banao', 'mcq', 'quiz', 'flashcard', 'concept'],
+    research: ['research', 'compare karo', 'analysis', 'detailed', 'latest news', 'study batao', 'sources', 'in depth']
+  };
+
+  function detectMode(text) {
+    const lower = text.toLowerCase();
+    for (const mode in MODE_KEYWORDS) {
+      if (MODE_KEYWORDS[mode].some(kw => lower.includes(kw))) {
+        return mode;
+      }
+    }
+    return 'general';
+  }
+
+  // backend ke MODE_FILES/SEARCH_ENABLED_MODES se match karne ke liye mapping
+  // (server.js mein bhi ye naye modes add karne honge — niche instructions mein)
+  const MODE_LABELS = {
+    general: '',
+    professional: 'Professional mode',
+    college: 'College mode',
+    research: 'Research mode (web search on)',
+    navigation: 'Navigation mode',
+    career: 'Career mode',
+    learning: 'Learning mode'
+  };
+
+  // ---------- 2. VOICE INPUT (Speech to Text) ----------
+  let recognition = null;
+  let isRecording = false;
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognitionAPI) {
+    recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'hi-IN';
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      messageInput.value = (messageInput.value + ' ' + transcript).trim();
+      messageInput.dispatchEvent(new Event('input'));
+    };
+
+    recognition.onend = () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    };
+
+    recognition.onerror = () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    };
+  }
+
+  micBtn.addEventListener('click', () => {
+    if (!recognition) {
+      alert('Ye browser voice input support nahi karta. Chrome try karein.');
+      return;
+    }
+    if (isRecording) {
+      recognition.stop();
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    } else {
+      recognition.start();
+      isRecording = true;
+      micBtn.classList.add('recording');
+    }
+  });
+
+  // ---------- 3. VOICE OUTPUT (Text to Speech) ----------
+  function speak(text) {
+    if (!voiceOutputOn || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'hi-IN';
+    window.speechSynthesis.speak(utter);
+  }
+
+  voiceOutBtn.addEventListener('click', () => {
+    voiceOutputOn = !voiceOutputOn;
+    voiceOutBtn.classList.toggle('active', voiceOutputOn);
+    if (!voiceOutputOn) window.speechSynthesis.cancel();
+  });
+
+  // ---------- 4. CAMERA & ATTACHMENT ----------
+  cameraBtn.addEventListener('click', () => cameraInput.click());
+  attachBtn.addEventListener('click', () => attachInput.click());
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFileSelect(file) {
+    if (!file) return;
+
+    if (file.type === 'text/plain') {
+      const text = await file.text();
+      messageInput.value += (messageInput.value ? '\n\n' : '') + '[Attached file: ' + file.name + ']\n' + text;
+      messageInput.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      const base64 = await fileToBase64(file);
+      pendingAttachment = { mimeType: file.type, data: base64, name: file.name };
+      renderAttachmentPreview(URL.createObjectURL(file));
+      return;
+    }
+
+    // PDF/DOC abhi seedha text extract nahi karte — user ko bata do
+    alert('PDF/DOC files abhi directly nahi padhi ja sakti. Image ya .txt file try karein.');
+  }
+
+  function renderAttachmentPreview(imgUrl) {
+    attachmentPreview.innerHTML =
+      '<div class="attachment-preview">' +
+        '<img src="' + imgUrl + '" alt="">' +
+        '<span>Photo attach ki gayi hai</span>' +
+        '<span class="remove-att" id="removeAttBtn">✕</span>' +
+      '</div>';
+    document.getElementById('removeAttBtn').addEventListener('click', () => {
+      pendingAttachment = null;
+      attachmentPreview.innerHTML = '';
+    });
+  }
+
+  cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+  attachInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+
+  // ---------- Google idToken decode ----------
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];
@@ -384,7 +596,6 @@
     const displayName = userInfo.name || userInfo.email || 'User';
     userNameEl.textContent = displayName;
     userNameEl.title = userInfo.email || '';
-
     if (userInfo.picture) {
       userAvatarEl.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
     } else {
@@ -430,14 +641,21 @@
 
   async function sendMessage() {
     const text = messageInput.value.trim();
-    if (!text) return;
+    if (!text && !pendingAttachment) return;
+
+    const detectedMode = detectMode(text);
+    activeModeTag.textContent = MODE_LABELS[detectedMode] || '';
 
     messageInput.value = '';
     messageInput.style.height = 'auto';
     sendBtn.disabled = true;
 
-    addBubble('user', text);
-    messages.push({ role: 'user', content: text });
+    addBubble('user', text || '[Photo bheji gayi]');
+    messages.push({ role: 'user', content: text || 'Is photo ko dekh kar batao.' });
+
+    const attachmentToSend = pendingAttachment;
+    pendingAttachment = null;
+    attachmentPreview.innerHTML = '';
 
     const thinkingEl = addThinking();
 
@@ -448,8 +666,9 @@
         body: JSON.stringify({
           messages: messages,
           language: languageSelect.value,
-          mode: currentMode,
-          idToken: idToken
+          mode: detectedMode,
+          idToken: idToken,
+          image: attachmentToSend
         })
       });
 
@@ -458,7 +677,6 @@
 
       if (!res.ok) {
         if (res.status === 401) {
-          // sign-in expired
           localStorage.removeItem('ruwanIdToken');
           window.location.href = '/';
           return;
@@ -469,6 +687,7 @@
 
       addBubble('ai', data.reply);
       messages.push({ role: 'assistant', content: data.reply });
+      speak(data.reply);
 
     } catch (err) {
       thinkingEl.remove();
