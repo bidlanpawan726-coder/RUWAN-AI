@@ -172,20 +172,9 @@
   };
 
   function handleCredentialResponse(response) {
-    fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: response.credential })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          window.location.href = '/chat.html';
-        } else {
-          alert('Login fail ho gaya, dubara try karo.');
-        }
-      })
-      .catch(err => console.error('Auth error:', err));
+    // idToken ko save karo taaki chat.html isse har /api/chat request ke saath bhej sake
+    localStorage.setItem('ruwanIdToken', response.credential);
+    window.location.href = '/chat.html';
   }
 </script>
 
