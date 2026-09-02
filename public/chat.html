@@ -72,25 +72,44 @@
     gap: 10px;
   }
 
-  .brand-mark {
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(111,151,201,0.25);
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
   }
 
-  .brand-mark img {
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--mist-deep);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    overflow: hidden;
+  }
+
+  .user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  .brand-name {
-    font-family: 'Fraunces', serif;
+  .user-name {
+    font-family: 'Inter', sans-serif;
     font-weight: 500;
-    font-size: 18px;
-    letter-spacing: 0.2px;
+    font-size: 13.5px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
   }
 
   .header-controls {
@@ -166,19 +185,13 @@
   }
 
   .empty-mark {
-    width: 46px;
-    height: 46px;
-    margin: 0 auto 16px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 6px 16px rgba(111,151,201,0.25);
-  }
-
-  .empty-mark img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: 4px;
+    color: var(--mist-deep);
+    text-shadow: 0 0 12px rgba(111,151,201,0.3);
+    margin-top: 16px;
   }
 
   .empty-state h2 {
@@ -287,9 +300,9 @@
 <body>
 
 <header>
-  <div class="brand">
-    <span class="brand-mark"><img src="logo.jpg" alt="Ruwan AI"></span>
-    <span class="brand-name">Ruwan AI</span>
+  <div class="brand" id="userBrand">
+    <span class="user-avatar" id="userAvatar">?</span>
+    <span class="user-name" id="userName">...</span>
   </div>
   <div class="header-controls">
     <select id="languageSelect">
@@ -302,9 +315,8 @@
 
 <main id="chatMain">
   <div class="empty-state" id="emptyState">
-    <div class="empty-mark"><img src="logo.jpg" alt="Ruwan AI"></div>
-    <h2>Kaise madad karoon?</h2>
-    <p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>
+    <p> honest aur anti-addictive AI </p>
+    <div class="empty-mark">RUWAN AI</div>
   </div>
 </main>
 
@@ -349,6 +361,38 @@
   });
 
   let messages = [];
+
+  // Google idToken (JWT) decode karke user ki info nikalo
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const userInfo = parseJwt(idToken);
+  const userNameEl = document.getElementById('userName');
+  const userAvatarEl = document.getElementById('userAvatar');
+
+  if (userInfo) {
+    const displayName = userInfo.name || userInfo.email || 'User';
+    userNameEl.textContent = displayName;
+    userNameEl.title = userInfo.email || '';
+
+    if (userInfo.picture) {
+      userAvatarEl.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
+    } else {
+      userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+    }
+  } else {
+    userNameEl.textContent = 'User';
+  }
 
   // textarea auto-grow
   messageInput.addEventListener('input', () => {
