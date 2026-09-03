@@ -16,6 +16,20 @@ if (MONGODB_URI) {
   console.warn("MONGODB_URI not set — database features disabled.");
 }
 
+// ---------- Database Schemas ----------
+const chatSchema = new mongoose.Schema({
+  userId: { type: String, required: true, index: true },
+  title: { type: String, default: "New Chat" },
+  messages: [
+    {
+      role: { type: String, required: true },
+      content: { type: String, required: true },
+    },
+  ],
+}, { timestamps: true });
+
+const Chat = mongoose.model("Chat", chatSchema);
+
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -89,12 +103,54 @@ function buildSystemPrompt(language, mode) {
   return parts.filter(Boolean).join("\n\n");
 }
 
+// ---------- Chat List (Sidebar Ke Liye — Baad Mein Use Hoga) ----------
+app.get("/api/chats", async (req, res) => {
+  try {
+    if (!authClient) return res.status(500).json({ error: "Auth not configured." });
+    const idToken = req.query.idToken;
+    if (!idToken) return res.status(401).json({ error: "Sign in required." });
+    const payload = await verifyGoogleToken(idToken);
+    if (!payload) return res.status(401).json({ error: "Session expired." });
+
+    const chats = await Chat.find({ userId: payload.sub })
+      .sort({ updatedAt: -1 })
+      .select("title updatedAt")
+      .lean();
+
+    res.json({ chats });
+  } catch (err) {
+    console.error("List chats error:", err);
+    res.status(500).json({ error: "Could not load chats." });
+  }
+});
+
+// ---------- Single Chat Load Karna ----------
+app.get("/api/chats/:chatId", async (req, res) => {
+  try {
+    if (!authClient) return res.status(500).json({ error: "Auth not configured." });
+    const idToken = req.query.idToken;
+    if (!idToken) return res.status(401).json({ error: "Sign in required." });
+    const payload = await verifyGoogleToken(idToken);
+    if (!payload) return res.status(401).json({ error: "Session expired." });
+
+    const chat = await Chat.findOne({ _id: req.params.chatId, userId: payload.sub }).lean();
+    if (!chat) return res.status(404).json({ error: "Chat not found." });
+
+    res.json({ chat });
+  } catch (err) {
+    console.error("Get chat error:", err);
+    res.status(500).json({ error: "Could not load chat." });
+  }
+});
+
+// ---------- Main Chat Endpoint (Ab Save Bhi Karta Hai) ----------
 app.post("/api/chat", async (req, res) => {
   try {
     if (!GEMINI_API_KEY) {
       return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
     }
 
+    let userSub = null;
     if (authClient) {
       const idToken = req.body.idToken;
       if (!idToken) {
@@ -104,12 +160,14 @@ app.post("/api/chat", async (req, res) => {
       if (!payload) {
         return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
       }
+      userSub = payload.sub;
     }
 
     const messages = req.body.messages;
     const language = req.body.language;
     const mode = req.body.mode;
     const image = req.body.image;
+    const chatId = req.body.chatId; // optional — agar existing chat continue ho rahi hai
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "messages array is required." });
@@ -170,7 +228,44 @@ app.post("/api/chat", async (req, res) => {
       replyText = data.candidates[0].content.parts.map(function (p) { return p.text || ""; }).join("");
     }
 
-    res.json({ reply: replyText });
+    // ---------- Database Mein Save Karna ----------
+    let savedChatId = chatId || null;
+    if (userSub && MONGODB_URI) {
+      try {
+        const lastUserMessage = trimmedMessages[trimmedMessages.length - 1];
+        if (chatId) {
+          await Chat.findOneAndUpdate(
+            { _id: chatId, userId: userSub },
+            {
+              $push: {
+                messages: {
+                  $each: [
+                    { role: "user", content: lastUserMessage.content },
+                    { role: "assistant", content: replyText },
+                  ],
+                },
+              },
+            }
+          );
+        } else {
+          const title = lastUserMessage.content.slice(0, 40) || "New Chat";
+          const newChat = await Chat.create({
+            userId: userSub,
+            title: title,
+            messages: [
+              { role: "user", content: lastUserMessage.content },
+              { role: "assistant", content: replyText },
+            ],
+          });
+          savedChatId = newChat._id.toString();
+        }
+      } catch (dbErr) {
+        console.error("Chat save error:", dbErr);
+        // Save fail ho to bhi user ko jawab milna chahiye, isliye error yahan silent rakha
+      }
+    }
+
+    res.json({ reply: replyText, chatId: savedChatId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Something went wrong on the server." });
