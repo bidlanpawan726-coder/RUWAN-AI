@@ -64,11 +64,6 @@
     background: rgba(255,255,255,0.7);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
     gap: 10px;
   }
 
@@ -77,6 +72,29 @@
     align-items: center;
     gap: 9px;
     min-width: 0;
+  }
+
+  .hamburger-btn {
+    background: none;
+    border: none;
+    color: var(--ink);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .hamburger-btn:hover {
+    background: rgba(111,151,201,0.12);
+  }
+
+  .hamburger-btn svg {
+    width: 20px;
+    height: 20px;
   }
 
   .user-avatar {
@@ -109,7 +127,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 150px;
+    max-width: 130px;
   }
 
   .header-controls {
@@ -126,6 +144,114 @@
     border-radius: 20px;
     padding: 6px 12px;
     outline: none;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 270px;
+    max-width: 82%;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    z-index: 11;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-header {
+    padding: 16px 14px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sidebar-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .new-chat-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--mist-deep);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .new-chat-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .sidebar-empty {
+    padding: 16px 10px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  .chat-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 3px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item:hover {
+    background: var(--paper);
+  }
+
+  .chat-item.active {
+    background: rgba(111,151,201,0.15);
+    color: var(--mist-deep);
+    font-weight: 500;
   }
 
   main {
@@ -372,7 +498,24 @@
 </head>
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Ruwan AI</div>
+    <button class="new-chat-btn" id="newChatBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      New Chat
+    </button>
+  </div>
+  <div class="sidebar-list" id="sidebarList">
+    <div class="sidebar-empty">Loading...</div>
+  </div>
+</div>
+
 <header>
+  <button class="hamburger-btn" id="hamburgerBtn" title="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
   <div class="brand" id="userBrand">
     <span class="user-avatar" id="userAvatar">?</span>
     <span class="user-name" id="userName">...</span>
@@ -388,7 +531,7 @@
 
 <main id="chatMain">
   <div class="empty-state" id="emptyState">
-    <p> anti-addictive AI “Think. Ask. Understand. Then move forward.”</p>
+    <p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>
     <div class="empty-mark">RUWAN AI</div>
   </div>
 </main>
@@ -434,7 +577,7 @@
   }
 
   const chatMain = document.getElementById('chatMain');
-  const emptyState = document.getElementById('emptyState');
+  const emptyState0 = document.getElementById('emptyState');
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const languageSelect = document.getElementById('languageSelect');
@@ -447,10 +590,102 @@
   const cameraInput = document.getElementById('cameraInput');
   const attachmentPreview = document.getElementById('attachmentPreview');
 
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const newChatBtn = document.getElementById('newChatBtn');
+  const sidebarList = document.getElementById('sidebarList');
+
   let messages = [];
   let pendingAttachment = null;
   let voiceOutputOn = false;
+  let currentChatId = null;
 
+  // ---------- SIDEBAR LOGIC ----------
+  function openSidebar() {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.add('open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+  }
+  hamburgerBtn.addEventListener('click', openSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+
+  async function loadChatList() {
+    try {
+      const res = await fetch('/api/chats?idToken=' + encodeURIComponent(idToken));
+      const data = await res.json();
+      if (!res.ok) return;
+      renderChatList(data.chats || []);
+    } catch (err) {
+      console.error('Load chat list error:', err);
+    }
+  }
+
+  function renderChatList(chats) {
+    if (!chats.length) {
+      sidebarList.innerHTML = '<div class="sidebar-empty">Koi purani chat nahi hai</div>';
+      return;
+    }
+    sidebarList.innerHTML = '';
+    chats.forEach((chat) => {
+      const btn = document.createElement('button');
+      btn.className = 'chat-item' + (chat._id === currentChatId ? ' active' : '');
+      btn.textContent = chat.title || 'New Chat';
+      btn.addEventListener('click', () => loadChat(chat._id));
+      sidebarList.appendChild(btn);
+    });
+  }
+
+  async function loadChat(chatId) {
+    try {
+      const res = await fetch('/api/chats/' + chatId + '?idToken=' + encodeURIComponent(idToken));
+      const data = await res.json();
+      if (!res.ok || !data.chat) return;
+
+      currentChatId = chatId;
+      messages = data.chat.messages.map((m) => ({ role: m.role, content: m.content }));
+      renderFullChat();
+      closeSidebar();
+      loadChatList();
+    } catch (err) {
+      console.error('Load chat error:', err);
+    }
+  }
+
+  function renderFullChat() {
+    chatMain.innerHTML = '';
+    if (messages.length === 0) {
+      chatMain.innerHTML =
+        '<div class="empty-state" id="emptyState">' +
+          '<p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>' +
+          '<div class="empty-mark">RUWAN AI</div>' +
+        '</div>';
+      return;
+    }
+    messages.forEach((m) => {
+      const div = document.createElement('div');
+      div.className = 'msg ' + (m.role === 'user' ? 'user' : 'ai');
+      div.textContent = m.content;
+      chatMain.appendChild(div);
+    });
+    chatMain.scrollTop = chatMain.scrollHeight;
+  }
+
+  function startNewChat() {
+    currentChatId = null;
+    messages = [];
+    renderFullChat();
+    closeSidebar();
+    loadChatList();
+  }
+  newChatBtn.addEventListener('click', startNewChat);
+
+  loadChatList();
+
+  // ---------- 1. AUTOMATIC MODE DETECTION (keyword based) ----------
   const MODE_KEYWORDS = {
     navigation: ['route', 'kaise jau', 'kaise jaun', 'metro', 'bus se', 'airport', 'station', 'address', 'location', 'direction', 'road', 'nearest', 'paas mein'],
     college: ['admission', 'college', 'university', 'entrance exam', 'eligibility', 'scholarship', 'fees', 'deadline', 'application form'],
@@ -480,6 +715,7 @@
     learning: 'Learning mode'
   };
 
+  // ---------- 2. VOICE INPUT (Speech to Text) ----------
   let recognition = null;
   let isRecording = false;
   const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -523,6 +759,7 @@
     }
   });
 
+  // ---------- 3. VOICE OUTPUT (Text to Speech) ----------
   function speak(text) {
     if (!voiceOutputOn || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -537,6 +774,7 @@
     if (!voiceOutputOn) window.speechSynthesis.cancel();
   });
 
+  // ---------- 4. CAMERA & ATTACHMENT ----------
   cameraBtn.addEventListener('click', () => cameraInput.click());
   attachBtn.addEventListener('click', () => attachInput.click());
 
@@ -585,6 +823,7 @@
   cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
   attachInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
 
+  // ---------- Google idToken decode ----------
   function parseJwt(token) {
     try {
       const base64Url = token.split('.')[1];
@@ -630,7 +869,8 @@
   sendBtn.addEventListener('click', sendMessage);
 
   function addBubble(role, text) {
-    if (emptyState) emptyState.remove();
+    const existingEmpty = document.getElementById('emptyState');
+    if (existingEmpty) existingEmpty.remove();
     const div = document.createElement('div');
     div.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
     div.textContent = text;
@@ -692,7 +932,8 @@
           language: languageSelect.value,
           mode: detectedMode,
           idToken: idToken,
-          image: attachmentToSend
+          image: attachmentToSend,
+          chatId: currentChatId
         })
       });
 
@@ -712,6 +953,11 @@
       addBubble('ai', data.reply);
       messages.push({ role: 'assistant', content: data.reply });
       speak(data.reply);
+
+      if (data.chatId && data.chatId !== currentChatId) {
+        currentChatId = data.chatId;
+      }
+      loadChatList();
 
     } catch (err) {
       thinkingEl.remove();
