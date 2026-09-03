@@ -53,6 +53,7 @@ async function sendMessage(text) {
   autoResize();
   sendBtn.disabled = true;
   const typingEl = addTypingIndicator();
+
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -64,14 +65,51 @@ async function sendMessage(text) {
         idToken: idToken,
       }),
     });
-    const data = await res.json();
-    typingEl.remove();
+
     if (!res.ok) {
+      typingEl.remove();
+      const data = await res.json();
       addMessage("ai", data.error || "Kuch gadbad ho gayi. Thodi der baad try karein.");
+      sendBtn.disabled = false;
       return;
     }
-    history.push({ role: "assistant", content: data.reply });
-    addMessage("ai", data.reply);
+
+    typingEl.remove();
+    const aiWrapper = addMessage("ai", "");
+    const bubble = aiWrapper.querySelector(".msg-bubble");
+    let fullText = "";
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const payload = line.slice(6);
+          if (payload === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.text) {
+              fullText += parsed.text;
+              bubble.textContent = fullText;
+              chatArea.scrollTop = chatArea.scrollHeight;
+            }
+          } catch (e) {
+            // ignore malformed chunk
+          }
+        }
+      }
+    }
+
+    history.push({ role: "assistant", content: fullText });
   } catch (err) {
     typingEl.remove();
     addMessage("ai", "Connection mein dikkat aa rahi hai. Apna internet check karke phir try karein.");
