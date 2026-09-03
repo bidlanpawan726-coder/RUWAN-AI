@@ -1,11 +1,15 @@
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
 const fs = require("fs");
-const { OAuth2Client } = require("google-auth-library");
 const mongoose = require("mongoose");
+const { OAuth2Client } = require("google-auth-library");
 
+const app = express();
+
+// ---------- MongoDB ----------
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (MONGODB_URI) {
@@ -16,48 +20,82 @@ if (MONGODB_URI) {
   console.warn("MONGODB_URI not set — database features disabled.");
 }
 
-// ---------- Database Schemas ----------
-const chatSchema = new mongoose.Schema({
-  userId: { type: String, required: true, index: true },
-  title: { type: String, default: "New Chat" },
-  messages: [
-    {
-      role: { type: String, required: true },
-      content: { type: String, required: true },
+// ---------- Database Schema ----------
+const chatSchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+
+    title: {
+      type: String,
+      default: "New Chat",
     },
-  ],
-}, { timestamps: true });
+
+    messages: [
+      {
+        role: {
+          type: String,
+          required: true,
+        },
+
+        content: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const Chat = mongoose.model("Chat", chatSchema);
 
-const app = express();
+// ---------- Express ----------
+const appJsonLimit = "10mb";
+
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: appJsonLimit }));
 app.use(express.static("public"));
 
+// ---------- Gemini ----------
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// Existing model preserved
 const MODEL = "gemini-3.6-flash";
 
+// ---------- Google Login ----------
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const authClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
+const authClient = GOOGLE_CLIENT_ID
+  ? new OAuth2Client(GOOGLE_CLIENT_ID)
+  : null;
+
+// ---------- Config ----------
 app.get("/api/config", (req, res) => {
-  res.json({ googleClientId: GOOGLE_CLIENT_ID || null });
+  res.json({
+    googleClientId: GOOGLE_CLIENT_ID || null,
+  });
 });
 
+// ---------- Verify Google Token ----------
 async function verifyGoogleToken(idToken) {
   if (!authClient) return null;
+
   try {
     const ticket = await authClient.verifyIdToken({
       idToken,
       audience: GOOGLE_CLIENT_ID,
     });
+
     return ticket.getPayload();
   } catch (err) {
+    console.error("Google token verification failed:", err);
     return null;
   }
 }
 
+// ---------- Prompt Files ----------
 function readPromptFile(filename) {
   try {
     return fs.readFileSync(filename, "utf8").trim();
@@ -67,14 +105,17 @@ function readPromptFile(filename) {
 }
 
 const BRAND_NAME = "Ruwan AI";
+
 const BASE_SYSTEM_PROMPT = readPromptFile("prompt.txt");
 
+// ---------- Languages ----------
 const LANGUAGE_FILES = {
   auto: null,
   english: "lang-english.txt",
   hindi: "lang-hindi.txt",
 };
 
+// ---------- Modes ----------
 const MODE_FILES = {
   general: null,
   professional: "mode-professional.txt",
@@ -85,6 +126,7 @@ const MODE_FILES = {
   learning: "mode-learning.txt",
 };
 
+// ---------- Search Enabled Modes ----------
 const SEARCH_ENABLED_MODES = {
   research: true,
   college: true,
@@ -93,102 +135,252 @@ const SEARCH_ENABLED_MODES = {
   learning: true,
 };
 
+// ---------- Build System Prompt ----------
 function buildSystemPrompt(language, mode) {
   const parts = [BASE_SYSTEM_PROMPT];
+
   const langFile = LANGUAGE_FILES[language];
-  if (langFile) parts.push(readPromptFile(langFile));
+
+  if (langFile) {
+    parts.push(readPromptFile(langFile));
+  }
+
   const modeFile = MODE_FILES[mode];
-  if (modeFile) parts.push(readPromptFile(modeFile));
+
+  if (modeFile) {
+    parts.push(readPromptFile(modeFile));
+  }
+
   parts.push(readPromptFile("youtube-suggestion.txt"));
-  return parts.filter(Boolean).join("\n\n");
+
+  return parts
+    .filter(Boolean)
+    .join("\n\n");
 }
 
-// ---------- Chat List (Sidebar Ke Liye — Baad Mein Use Hoga) ----------
+// ============================================================
+// CHAT LIST
+// ============================================================
+
 app.get("/api/chats", async (req, res) => {
   try {
-    if (!authClient) return res.status(500).json({ error: "Auth not configured." });
-    const idToken = req.query.idToken;
-    if (!idToken) return res.status(401).json({ error: "Sign in required." });
-    const payload = await verifyGoogleToken(idToken);
-    if (!payload) return res.status(401).json({ error: "Session expired." });
+    if (!authClient) {
+      return res.status(500).json({
+        error: "Auth not configured.",
+      });
+    }
 
-    const chats = await Chat.find({ userId: payload.sub })
+    const idToken = req.query.idToken;
+
+    if (!idToken) {
+      return res.status(401).json({
+        error: "Sign in required.",
+      });
+    }
+
+    const payload = await verifyGoogleToken(idToken);
+
+    if (!payload) {
+      return res.status(401).json({
+        error: "Session expired.",
+      });
+    }
+
+    const chats = await Chat.find({
+      userId: payload.sub,
+    })
       .sort({ updatedAt: -1 })
       .select("title updatedAt")
       .lean();
 
-    res.json({ chats });
+    res.json({
+      chats,
+    });
+
   } catch (err) {
     console.error("List chats error:", err);
-    res.status(500).json({ error: "Could not load chats." });
+
+    res.status(500).json({
+      error: "Could not load chats.",
+    });
   }
 });
 
-// ---------- Single Chat Load Karna ----------
+// ============================================================
+// LOAD SINGLE CHAT
+// ============================================================
+
 app.get("/api/chats/:chatId", async (req, res) => {
   try {
-    if (!authClient) return res.status(500).json({ error: "Auth not configured." });
+    if (!authClient) {
+      return res.status(500).json({
+        error: "Auth not configured.",
+      });
+    }
+
     const idToken = req.query.idToken;
-    if (!idToken) return res.status(401).json({ error: "Sign in required." });
+
+    if (!idToken) {
+      return res.status(401).json({
+        error: "Sign in required.",
+      });
+    }
+
     const payload = await verifyGoogleToken(idToken);
-    if (!payload) return res.status(401).json({ error: "Session expired." });
 
-    const chat = await Chat.findOne({ _id: req.params.chatId, userId: payload.sub }).lean();
-    if (!chat) return res.status(404).json({ error: "Chat not found." });
+    if (!payload) {
+      return res.status(401).json({
+        error: "Session expired.",
+      });
+    }
 
-    res.json({ chat });
+    const chat = await Chat.findOne({
+      _id: req.params.chatId,
+      userId: payload.sub,
+    }).lean();
+
+    if (!chat) {
+      return res.status(404).json({
+        error: "Chat not found.",
+      });
+    }
+
+    res.json({
+      chat,
+    });
+
   } catch (err) {
     console.error("Get chat error:", err);
-    res.status(500).json({ error: "Could not load chat." });
+
+    res.status(500).json({
+      error: "Could not load chat.",
+    });
   }
 });
 
-// ---------- Main Chat Endpoint (Ab Save Bhi Karta Hai) ----------
+// ============================================================
+// MAIN CHAT ENDPOINT — STREAMING
+// ============================================================
+
 app.post("/api/chat", async (req, res) => {
+  let userSub = null;
+
   try {
+    // --------------------------------------------------------
+    // Check Gemini API key
+    // --------------------------------------------------------
+
     if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
+      return res.status(500).json({
+        error: "Server not configured: missing GEMINI_API_KEY.",
+      });
     }
 
-    let userSub = null;
+    // --------------------------------------------------------
+    // Google Authentication
+    // --------------------------------------------------------
+
     if (authClient) {
       const idToken = req.body.idToken;
+
       if (!idToken) {
-        return res.status(401).json({ error: "Please sign in with Google to chat." });
+        return res.status(401).json({
+          error: "Please sign in with Google to chat.",
+        });
       }
+
       const payload = await verifyGoogleToken(idToken);
+
       if (!payload) {
-        return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
+        return res.status(401).json({
+          error: "Your sign-in has expired. Please sign in again.",
+        });
       }
+
       userSub = payload.sub;
     }
+
+    // --------------------------------------------------------
+    // Request Data
+    // --------------------------------------------------------
 
     const messages = req.body.messages;
     const language = req.body.language;
     const mode = req.body.mode;
     const image = req.body.image;
-    const chatId = req.body.chatId; // optional — agar existing chat continue ho rahi hai
+    const chatId = req.body.chatId;
 
     if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "messages array is required." });
+      return res.status(400).json({
+        error: "messages array is required.",
+      });
     }
 
-    const safeLanguage = LANGUAGE_FILES.hasOwnProperty(language) ? language : "auto";
-    const safeMode = MODE_FILES.hasOwnProperty(mode) ? mode : "general";
-    const systemPrompt = buildSystemPrompt(safeLanguage, safeMode);
+    // --------------------------------------------------------
+    // Safe Language / Mode
+    // --------------------------------------------------------
+
+    const safeLanguage = Object.prototype.hasOwnProperty.call(
+      LANGUAGE_FILES,
+      language
+    )
+      ? language
+      : "auto";
+
+    const safeMode = Object.prototype.hasOwnProperty.call(
+      MODE_FILES,
+      mode
+    )
+      ? mode
+      : "general";
+
+    // --------------------------------------------------------
+    // System Prompt
+    // --------------------------------------------------------
+
+    const systemPrompt = buildSystemPrompt(
+      safeLanguage,
+      safeMode
+    );
+
+    // --------------------------------------------------------
+    // Keep last 30 messages
+    // --------------------------------------------------------
 
     const trimmedMessages = messages.slice(-30);
+
+    // --------------------------------------------------------
+    // Convert messages for Gemini
+    // --------------------------------------------------------
 
     const geminiContents = trimmedMessages.map(function (m) {
       return {
         role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
+
+        parts: [
+          {
+            text: String(m.content || ""),
+          },
+        ],
       };
     });
 
-    if (image && image.data && image.mimeType) {
-      const lastMsg = geminiContents[geminiContents.length - 1];
-      if (lastMsg && lastMsg.role === "user") {
+    // --------------------------------------------------------
+    // Image support
+    // --------------------------------------------------------
+
+    if (
+      image &&
+      image.data &&
+      image.mimeType
+    ) {
+      const lastMsg =
+        geminiContents[geminiContents.length - 1];
+
+      if (
+        lastMsg &&
+        lastMsg.role === "user"
+      ) {
         lastMsg.parts.push({
           inline_data: {
             mime_type: image.mimeType,
@@ -198,81 +390,429 @@ app.post("/api/chat", async (req, res) => {
       }
     }
 
+    // --------------------------------------------------------
+    // Gemini Request Body
+    // --------------------------------------------------------
+
     const requestBody = {
-      system_instruction: { parts: [{ text: systemPrompt }] },
+      system_instruction: {
+        parts: [
+          {
+            text: systemPrompt,
+          },
+        ],
+      },
+
       contents: geminiContents,
-      generationConfig: { maxOutputTokens: 800 },
+
+      generationConfig: {
+        maxOutputTokens: 800,
+      },
     };
 
+    // --------------------------------------------------------
+    // Google Search
+    // --------------------------------------------------------
+
     if (SEARCH_ENABLED_MODES[safeMode]) {
-      requestBody.tools = [{ google_search: {} }];
+      requestBody.tools = [
+        {
+          google_search: {},
+        },
+      ];
     }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + GEMINI_API_KEY;
+    // --------------------------------------------------------
+    // STREAMING HEADERS
+    // --------------------------------------------------------
+
+    res.status(200);
+
+    res.setHeader(
+      "Content-Type",
+      "text/event-stream; charset=utf-8"
+    );
+
+    res.setHeader(
+      "Cache-Control",
+      "no-cache, no-transform"
+    );
+
+    res.setHeader(
+      "Connection",
+      "keep-alive"
+    );
+
+    res.setHeader(
+      "X-Accel-Buffering",
+      "no"
+    );
+
+    // Flush headers immediately
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+
+    // --------------------------------------------------------
+    // Gemini Streaming URL
+    // --------------------------------------------------------
+
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      MODEL +
+      ":streamGenerateContent?alt=sse&key=" +
+      GEMINI_API_KEY;
+
+    // --------------------------------------------------------
+    // Send request to Gemini
+    // --------------------------------------------------------
 
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
       body: JSON.stringify(requestBody),
     });
 
+    // --------------------------------------------------------
+    // Gemini Error
+    // --------------------------------------------------------
+
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Gemini API error:", response.status, errText);
-      return res.status(502).json({ error: "Upstream AI service error." });
-    }
 
-    const data = await response.json();
-    let replyText = "Maaf karna, jawab generate nahi ho paaya.";
-    if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-      replyText = data.candidates[0].content.parts.map(function (p) { return p.text || ""; }).join("");
-    }
+      console.error(
+        "Gemini streaming API error:",
+        response.status,
+        errText
+      );
 
-    // ---------- Database Mein Save Karna ----------
-    let savedChatId = chatId || null;
-    if (userSub && MONGODB_URI) {
-      try {
-        const lastUserMessage = trimmedMessages[trimmedMessages.length - 1];
-        if (chatId) {
-          await Chat.findOneAndUpdate(
-            { _id: chatId, userId: userSub },
-            {
-              $push: {
-                messages: {
-                  $each: [
-                    { role: "user", content: lastUserMessage.content },
-                    { role: "assistant", content: replyText },
-                  ],
-                },
-              },
-            }
-          );
-        } else {
-          const title = lastUserMessage.content.slice(0, 40) || "New Chat";
-          const newChat = await Chat.create({
-            userId: userSub,
-            title: title,
-            messages: [
-              { role: "user", content: lastUserMessage.content },
-              { role: "assistant", content: replyText },
-            ],
-          });
-          savedChatId = newChat._id.toString();
-        }
-      } catch (dbErr) {
-        console.error("Chat save error:", dbErr);
-        // Save fail ho to bhi user ko jawab milna chahiye, isliye error yahan silent rakha
+      if (!res.headersSent) {
+        return res.status(502).json({
+          error: "Upstream AI service error.",
+        });
       }
+
+      res.write(
+        `data: ${JSON.stringify({
+          error: "Upstream AI service error.",
+        })}\n\n`
+      );
+
+      res.write("data: [DONE]\n\n");
+      return res.end();
     }
 
-    res.json({ reply: replyText, chatId: savedChatId });
+    // --------------------------------------------------------
+    // Streaming variables
+    // --------------------------------------------------------
+
+    let fullReply = "";
+
+    let streamBuffer = "";
+
+    // --------------------------------------------------------
+    // Read Gemini stream
+    // --------------------------------------------------------
+
+    response.body.on("data", (chunk) => {
+      try {
+        streamBuffer += chunk.toString();
+
+        const lines = streamBuffer.split("\n");
+
+        // Keep incomplete line for next chunk
+        streamBuffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+
+          if (!trimmedLine) {
+            continue;
+          }
+
+          if (!trimmedLine.startsWith("data:")) {
+            continue;
+          }
+
+          const jsonText = trimmedLine
+            .slice(5)
+            .trim();
+
+          if (!jsonText) {
+            continue;
+          }
+
+          try {
+            const data = JSON.parse(jsonText);
+
+            let text = "";
+
+            if (
+              data &&
+              data.candidates &&
+              data.candidates[0] &&
+              data.candidates[0].content &&
+              data.candidates[0].content.parts
+            ) {
+              text =
+                data.candidates[0].content.parts
+                  .map(function (part) {
+                    return part.text || "";
+                  })
+                  .join("");
+            }
+
+            if (text) {
+              fullReply += text;
+
+              // Send chunk to browser
+              res.write(
+                `data: ${JSON.stringify({
+                  text: text,
+                })}\n\n`
+              );
+            }
+
+          } catch (parseError) {
+            console.error(
+              "Gemini chunk parse error:",
+              parseError
+            );
+          }
+        }
+
+      } catch (streamError) {
+        console.error(
+          "Streaming read error:",
+          streamError
+        );
+      }
+    });
+
+    // --------------------------------------------------------
+    // Gemini stream finished
+    // --------------------------------------------------------
+
+    response.body.on("end", async () => {
+      try {
+        // ----------------------------------------------------
+        // Save chat to MongoDB
+        // ----------------------------------------------------
+
+        let savedChatId = chatId || null;
+
+        if (
+          userSub &&
+          MONGODB_URI &&
+          fullReply
+        ) {
+          try {
+            const lastUserMessage =
+              trimmedMessages[
+                trimmedMessages.length - 1
+              ];
+
+            if (
+              lastUserMessage &&
+              lastUserMessage.content
+            ) {
+              // Existing chat
+              if (chatId) {
+                const updatedChat =
+                  await Chat.findOneAndUpdate(
+                    {
+                      _id: chatId,
+                      userId: userSub,
+                    },
+
+                    {
+                      $push: {
+                        messages: {
+                          $each: [
+                            {
+                              role: "user",
+                              content:
+                                lastUserMessage.content,
+                            },
+
+                            {
+                              role: "assistant",
+                              content: fullReply,
+                            },
+                          ],
+                        },
+                      },
+                    },
+
+                    {
+                      new: true,
+                    }
+                  );
+
+                if (updatedChat) {
+                  savedChatId =
+                    updatedChat._id.toString();
+                }
+              }
+
+              // New chat
+              else {
+                const title =
+                  String(
+                    lastUserMessage.content
+                  )
+                    .slice(0, 40)
+                    .trim() || "New Chat";
+
+                const newChat =
+                  await Chat.create({
+                    userId: userSub,
+
+                    title: title,
+
+                    messages: [
+                      {
+                        role: "user",
+                        content:
+                          lastUserMessage.content,
+                      },
+
+                      {
+                        role: "assistant",
+                        content: fullReply,
+                      },
+                    ],
+                  });
+
+                savedChatId =
+                  newChat._id.toString();
+              }
+            }
+
+          } catch (dbErr) {
+            console.error(
+              "Chat save error:",
+              dbErr
+            );
+          }
+        }
+
+        // ----------------------------------------------------
+        // Send final chat ID
+        // ----------------------------------------------------
+
+        res.write(
+          `data: ${JSON.stringify({
+            chatId: savedChatId,
+          })}\n\n`
+        );
+
+        // Tell frontend stream is complete
+        res.write("data: [DONE]\n\n");
+
+        res.end();
+
+      } catch (endError) {
+        console.error(
+          "Stream end error:",
+          endError
+        );
+
+        if (!res.writableEnded) {
+          res.write(
+            `data: ${JSON.stringify({
+              error: "Response completed with an error.",
+            })}\n\n`
+          );
+
+          res.write("data: [DONE]\n\n");
+          res.end();
+        }
+      }
+    });
+
+    // --------------------------------------------------------
+    // Gemini stream error
+    // --------------------------------------------------------
+
+    response.body.on("error", (streamError) => {
+      console.error(
+        "Gemini response stream error:",
+        streamError
+      );
+
+      if (!res.writableEnded) {
+        res.write(
+          `data: ${JSON.stringify({
+            error: "AI streaming connection failed.",
+          })}\n\n`
+        );
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+      }
+    });
+
+    // --------------------------------------------------------
+    // Client disconnected
+    // --------------------------------------------------------
+
+    req.on("close", () => {
+      if (!res.writableEnded) {
+        console.log(
+          "Client disconnected from chat stream."
+        );
+
+        // Abort Gemini request if possible
+        if (
+          response.body &&
+          typeof response.body.destroy === "function"
+        ) {
+          response.body.destroy();
+        }
+      }
+    });
+
   } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: "Something went wrong on the server." });
+    console.error(
+      "Server error:",
+      err
+    );
+
+    if (!res.headersSent) {
+      return res.status(500).json({
+        error: "Something went wrong on the server.",
+      });
+    }
+
+    if (!res.writableEnded) {
+      res.write(
+        `data: ${JSON.stringify({
+          error: "Something went wrong on the server.",
+        })}\n\n`
+      );
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    }
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// ============================================================
+// SERVER
+// ============================================================
+
+const PORT =
+  process.env.PORT || 3000;
+
 app.listen(PORT, function () {
-  console.log(BRAND_NAME + " server running on port " + PORT);
+  console.log(
+    BRAND_NAME +
+      " server running on port " +
+      PORT
+  );
 });
