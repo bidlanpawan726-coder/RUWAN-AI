@@ -7,7 +7,7 @@ const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "10mb" })); // image ke liye limit badhaya
+app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -15,6 +15,10 @@ const MODEL = "gemini-3.6-flash";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const authClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+app.get("/api/config", (req, res) => {
+  res.json({ googleClientId: GOOGLE_CLIENT_ID || null });
+});
 
 async function verifyGoogleToken(idToken) {
   if (!authClient) return null;
@@ -94,7 +98,7 @@ app.post("/api/chat", async (req, res) => {
     const messages = req.body.messages;
     const language = req.body.language;
     const mode = req.body.mode;
-    const image = req.body.image; // { mimeType, data } — base64, optional
+    const image = req.body.image;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "messages array is required." });
@@ -135,50 +139,27 @@ app.post("/api/chat", async (req, res) => {
       requestBody.tools = [{ google_search: {} }];
     }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":streamGenerateContent?alt=sse&key=" + GEMINI_API_KEY;
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + GEMINI_API_KEY;
 
-    const geminiResponse = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Gemini API error:", geminiResponse.status, errText);
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Gemini API error:", response.status, errText);
       return res.status(502).json({ error: "Upstream AI service error." });
     }
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
+    const data = await response.json();
+    let replyText = "Maaf karna, jawab generate nahi ho paaya.";
+    if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      replyText = data.candidates[0].content.parts.map(function (p) { return p.text || ""; }).join("");
+    }
 
-    geminiResponse.body.on("data", (chunk) => {
-      const lines = chunk.toString().split("\n");
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          try {
-            const json = JSON.parse(line.slice(6));
-            const textPart = json.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textPart) {
-              res.write(`data: ${JSON.stringify({ text: textPart })}\n\n`);
-            }
-          } catch (e) {
-            // ignore malformed chunk
-          }
-        }
-      }
-    });
-
-    geminiResponse.body.on("end", () => {
-      res.write("data: [DONE]\n\n");
-      res.end();
-    });
-
-    geminiResponse.body.on("error", (err) => {
-      console.error("Stream error:", err);
-      res.end();
-    });
+    res.json({ reply: replyText });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Something went wrong on the server." });
