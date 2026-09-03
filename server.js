@@ -16,99 +16,6 @@ const MODEL = "gemini-3.6-flash";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const authClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
-app.post("/api/chat", async (req, res) => {
-  try {
-    if (!GEMINI_API_KEY) {
-      return res.status(500).json({ error: "Server not configured: missing GEMINI_API_KEY." });
-    }
-
-    if (authClient) {
-      const idToken = req.body.idToken;
-      if (!idToken) {
-        return res.status(401).json({ error: "Please sign in with Google to chat." });
-      }
-      const payload = await verifyGoogleToken(idToken);
-      if (!payload) {
-        return res.status(401).json({ error: "Your sign-in has expired. Please sign in again." });
-      }
-    }
-
-    const messages = req.body.messages;
-    const language = req.body.language;
-    const mode = req.body.mode;
-
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: "messages array is required." });
-    }
-
-    const safeLanguage = LANGUAGE_FILES.hasOwnProperty(language) ? language : "auto";
-    const safeMode = MODE_FILES.hasOwnProperty(mode) ? mode : "general";
-    const systemPrompt = buildSystemPrompt(safeLanguage, safeMode);
-
-    const trimmedMessages = messages.slice(-30);
-
-    const geminiContents = trimmedMessages.map(function (m) {
-      return {
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      };
-    });
-
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":streamGenerateContent?alt=sse&key=" + GEMINI_API_KEY;
-
-    const geminiResponse = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: geminiContents,
-        generationConfig: { maxOutputTokens: 600 },
-      }),
-    });
-
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Gemini API error:", geminiResponse.status, errText);
-      return res.status(502).json({ error: "Upstream AI service error." });
-    }
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-
-    geminiResponse.body.on("data", (chunk) => {
-      const lines = chunk.toString().split("\n");
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          try {
-            const json = JSON.parse(line.slice(6));
-            const textPart = json.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textPart) {
-              res.write(`data: ${JSON.stringify({ text: textPart })}\n\n`);
-            }
-          } catch (e) {
-            // ignore malformed chunk
-          }
-        }
-      }
-    });
-
-    geminiResponse.body.on("end", () => {
-      res.write("data: [DONE]\n\n");
-      res.end();
-    });
-
-    geminiResponse.body.on("error", (err) => {
-      console.error("Stream error:", err);
-      res.end();
-    });
-  } catch (err) {
-    console.error("Server error:", err);
-    res.status(500).json({ error: "Something went wrong on the server." });
-  }
-});
-
-
 async function verifyGoogleToken(idToken) {
   if (!authClient) return null;
   try {
@@ -139,9 +46,6 @@ const LANGUAGE_FILES = {
   hindi: "lang-hindi.txt",
 };
 
-// Naye modes add kiye — agar in naam ki .txt files exist nahi karti,
-// readPromptFile khali string return karega (koi error nahi aayega),
-// bas base prompt hi use hoga jab tak aap ye files na banao.
 const MODE_FILES = {
   general: null,
   professional: "mode-professional.txt",
@@ -152,7 +56,6 @@ const MODE_FILES = {
   learning: "mode-learning.txt",
 };
 
-// Ye modes automatically Google Search grounding use karenge
 const SEARCH_ENABLED_MODES = {
   research: true,
   college: true,
@@ -210,7 +113,6 @@ app.post("/api/chat", async (req, res) => {
       };
     });
 
-    // Agar image bheji gayi hai, use aakhri (latest) user message ke saath jodo
     if (image && image.data && image.mimeType) {
       const lastMsg = geminiContents[geminiContents.length - 1];
       if (lastMsg && lastMsg.role === "user") {
@@ -233,27 +135,50 @@ app.post("/api/chat", async (req, res) => {
       requestBody.tools = [{ google_search: {} }];
     }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + GEMINI_API_KEY;
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":streamGenerateContent?alt=sse&key=" + GEMINI_API_KEY;
 
-    const response = await fetch(url, {
+    const geminiResponse = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Gemini API error:", response.status, errText);
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      console.error("Gemini API error:", geminiResponse.status, errText);
       return res.status(502).json({ error: "Upstream AI service error." });
     }
 
-    const data = await response.json();
-    let replyText = "Maaf karna, jawab generate nahi ho paaya.";
-    if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-      replyText = data.candidates[0].content.parts.map(function (p) { return p.text || ""; }).join("");
-    }
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    res.json({ reply: replyText });
+    geminiResponse.body.on("data", (chunk) => {
+      const lines = chunk.toString().split("\n");
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          try {
+            const json = JSON.parse(line.slice(6));
+            const textPart = json.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textPart) {
+              res.write(`data: ${JSON.stringify({ text: textPart })}\n\n`);
+            }
+          } catch (e) {
+            // ignore malformed chunk
+          }
+        }
+      }
+    });
+
+    geminiResponse.body.on("end", () => {
+      res.write("data: [DONE]\n\n");
+      res.end();
+    });
+
+    geminiResponse.body.on("error", (err) => {
+      console.error("Stream error:", err);
+      res.end();
+    });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Something went wrong on the server." });
