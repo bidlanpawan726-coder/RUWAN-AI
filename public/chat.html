@@ -254,6 +254,65 @@
     font-weight: 500;
   }
 
+  .sidebar-footer {
+    border-top: 1px solid var(--line);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sidebar-footer .user-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sidebar-footer-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sidebar-footer-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-footer-email {
+    font-size: 11px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .logout-btn {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .logout-btn:hover {
+    background: rgba(217,83,79,0.12);
+    color: #d9534f;
+  }
+
+  .logout-btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
   main {
     flex: 1;
     overflow-y: auto;
@@ -510,6 +569,16 @@
   <div class="sidebar-list" id="sidebarList">
     <div class="sidebar-empty">Loading...</div>
   </div>
+  <div class="sidebar-footer" id="sidebarFooter">
+    <span class="user-avatar" id="sidebarAvatar">?</span>
+    <div class="sidebar-footer-info">
+      <div class="sidebar-footer-name" id="sidebarUserName">...</div>
+      <div class="sidebar-footer-email" id="sidebarUserEmail"></div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" title="Logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
 </div>
 
 <header>
@@ -521,6 +590,16 @@
     <span class="user-name" id="userName">...</span>
   </div>
   <div class="header-controls">
+    <select id="modeSelect" title="Mode">
+      <option value="auto">Auto Mode</option>
+      <option value="general">General</option>
+      <option value="professional">Professional</option>
+      <option value="college">College</option>
+      <option value="research">Research</option>
+      <option value="navigation">Navigation</option>
+      <option value="career">Career</option>
+      <option value="learning">Learning</option>
+    </select>
     <select id="languageSelect">
       <option value="auto">Auto</option>
       <option value="hindi">Hindi</option>
@@ -581,6 +660,7 @@
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const languageSelect = document.getElementById('languageSelect');
+  const modeSelect = document.getElementById('modeSelect');
   const activeModeTag = document.getElementById('activeModeTag');
   const attachBtn = document.getElementById('attachBtn');
   const cameraBtn = document.getElementById('cameraBtn');
@@ -595,6 +675,10 @@
   const hamburgerBtn = document.getElementById('hamburgerBtn');
   const newChatBtn = document.getElementById('newChatBtn');
   const sidebarList = document.getElementById('sidebarList');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  const sidebarUserName = document.getElementById('sidebarUserName');
+  const sidebarUserEmail = document.getElementById('sidebarUserEmail');
 
   let messages = [];
   let pendingAttachment = null;
@@ -845,14 +929,24 @@
     const displayName = userInfo.name || userInfo.email || 'User';
     userNameEl.textContent = displayName;
     userNameEl.title = userInfo.email || '';
+    sidebarUserName.textContent = displayName;
+    sidebarUserEmail.textContent = userInfo.email || '';
     if (userInfo.picture) {
       userAvatarEl.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
+      sidebarAvatar.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
     } else {
       userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
+      sidebarAvatar.textContent = displayName.charAt(0).toUpperCase();
     }
   } else {
     userNameEl.textContent = 'User';
+    sidebarUserName.textContent = 'User';
   }
+
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('ruwanIdToken');
+    window.location.href = '/';
+  });
 
   messageInput.addEventListener('input', () => {
     messageInput.style.height = 'auto';
@@ -907,7 +1001,7 @@
     const text = messageInput.value.trim();
     if (!text && !pendingAttachment) return;
 
-    const detectedMode = detectMode(text);
+    const detectedMode = (modeSelect.value !== 'auto') ? modeSelect.value : detectMode(text);
     activeModeTag.textContent = MODE_LABELS[detectedMode] || '';
 
     messageInput.value = '';
