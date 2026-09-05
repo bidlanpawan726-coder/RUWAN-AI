@@ -532,15 +532,29 @@
     0%, 100% { transform: translateY(0px); opacity: 0.5; }
     50% { transform: translateY(-4px); opacity: 1; }
   }
-  .fd { animation: floatDot2 1.4s ease-in-out infinite; transform-origin: center; }
-  .fd:nth-child(2) { animation-delay: 0.18s; }
-  .fd:nth-child(3) { animation-delay: 0.36s; }
+
+  .fd {
+    animation: floatDot2 1.4s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .fd:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .fd:nth-child(3) {
+    animation-delay: 0.36s;
+  }
 
   @keyframes gentleBob {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-2px); }
   }
-  .mascotBob { animation: gentleBob 2s ease-in-out infinite; transform-origin: center; }
+
+  .mascotBob {
+    animation: gentleBob 2s ease-in-out infinite;
+    transform-origin: center;
+  }
 
   .thinking-mascot {
     display: flex;
@@ -555,41 +569,63 @@
   }
 </style>
 </head>
+
 <body>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-title">Ruwan AI</div>
+
     <button class="new-chat-btn" id="newChatBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
       New Chat
     </button>
   </div>
+
   <div class="sidebar-list" id="sidebarList">
     <div class="sidebar-empty">Loading...</div>
   </div>
+
   <div class="sidebar-footer" id="sidebarFooter">
     <span class="user-avatar" id="sidebarAvatar">?</span>
+
     <div class="sidebar-footer-info">
       <div class="sidebar-footer-name" id="sidebarUserName">...</div>
       <div class="sidebar-footer-email" id="sidebarUserEmail"></div>
     </div>
+
     <button class="logout-btn" id="logoutBtn" title="Logout">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
     </button>
   </div>
 </div>
 
 <header>
+
   <button class="hamburger-btn" id="hamburgerBtn" title="Menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
   </button>
+
   <div class="brand" id="userBrand">
     <span class="user-avatar" id="userAvatar">?</span>
     <span class="user-name" id="userName">...</span>
   </div>
+
   <div class="header-controls">
+
     <select id="modeSelect" title="Mode">
       <option value="auto">Auto Mode</option>
       <option value="general">General</option>
@@ -600,57 +636,144 @@
       <option value="career">Career</option>
       <option value="learning">Learning</option>
     </select>
+
     <select id="languageSelect">
       <option value="auto">Auto</option>
       <option value="hindi">Hindi</option>
       <option value="english">English</option>
     </select>
+
   </div>
 </header>
 
 <main id="chatMain">
+
   <div class="empty-state" id="emptyState">
-    <p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>
+    <p>
+      Seedha, honest aur anti-addictive AI madad — apni bhasha mein,
+      apne andaaz mein.
+    </p>
+
     <div class="empty-mark">RUWAN AI</div>
   </div>
+
 </main>
 
 <footer>
+
   <div class="active-mode-tag" id="activeModeTag"></div>
+
   <div id="attachmentPreview"></div>
+
   <div class="input-row">
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none">
-    <input type="file" id="attachInput" accept="image/*,.txt,.pdf,.doc,.docx" style="display:none">
+
+    <input
+      type="file"
+      id="cameraInput"
+      accept="image/*"
+      capture="environment"
+      style="display:none"
+    >
+
+    <input
+      type="file"
+      id="attachInput"
+      accept="image/*,.txt,.pdf,.doc,.docx"
+      style="display:none"
+    >
 
     <button class="icon-btn" id="attachBtn" title="File attach karo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+      </svg>
+
     </button>
 
     <button class="icon-btn" id="cameraBtn" title="Camera se photo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+
     </button>
 
-    <textarea id="messageInput" placeholder="Apna sawaal likhein..." rows="1"></textarea>
+    <textarea
+      id="messageInput"
+      placeholder="Apna sawaal likhein..."
+      rows="1"
+    ></textarea>
 
     <button class="icon-btn" id="micBtn" title="Bolke poochein">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+        <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+      </svg>
+
     </button>
 
     <button class="icon-btn" id="voiceOutBtn" title="AI ki awaaz on/off">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 010 7.07"/>
+      </svg>
+
     </button>
 
     <button class="send" id="sendBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <line x1="12" y1="19" x2="12" y2="5"></line>
         <polyline points="6 11 12 5 18 11"></polyline>
       </svg>
+
     </button>
+
   </div>
 </footer>
 
 <script>
+
   const idToken = localStorage.getItem('ruwanIdToken');
+
   if (!idToken) {
     window.location.href = '/';
   }
@@ -686,381 +809,1303 @@
   let currentChatId = null;
 
   // ---------- SIDEBAR LOGIC ----------
+
   function openSidebar() {
     sidebar.classList.add('open');
     sidebarOverlay.classList.add('open');
   }
+
   function closeSidebar() {
     sidebar.classList.remove('open');
     sidebarOverlay.classList.remove('open');
   }
+
   hamburgerBtn.addEventListener('click', openSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
 
   async function loadChatList() {
+
     try {
-      const res = await fetch('/api/chats?idToken=' + encodeURIComponent(idToken));
+
+      const res = await fetch(
+        '/api/chats?idToken=' +
+        encodeURIComponent(idToken)
+      );
+
       const data = await res.json();
+
       if (!res.ok) return;
+
       renderChatList(data.chats || []);
+
     } catch (err) {
-      console.error('Load chat list error:', err);
+
+      console.error(
+        'Load chat list error:',
+        err
+      );
+
     }
+
   }
 
   function renderChatList(chats) {
+
     if (!chats.length) {
-      sidebarList.innerHTML = '<div class="sidebar-empty">Koi purani chat nahi hai</div>';
+
+      sidebarList.innerHTML =
+        '<div class="sidebar-empty">Koi purani chat nahi hai</div>';
+
       return;
     }
+
     sidebarList.innerHTML = '';
+
     chats.forEach((chat) => {
+
       const btn = document.createElement('button');
-      btn.className = 'chat-item' + (chat._id === currentChatId ? ' active' : '');
-      btn.textContent = chat.title || 'New Chat';
-      btn.addEventListener('click', () => loadChat(chat._id));
+
+      btn.className =
+        'chat-item' +
+        (chat._id === currentChatId
+          ? ' active'
+          : '');
+
+      btn.textContent =
+        chat.title || 'New Chat';
+
+      btn.addEventListener(
+        'click',
+        () => loadChat(chat._id)
+      );
+
       sidebarList.appendChild(btn);
+
     });
+
   }
 
   async function loadChat(chatId) {
+
     try {
-      const res = await fetch('/api/chats/' + chatId + '?idToken=' + encodeURIComponent(idToken));
+
+      const res = await fetch(
+        '/api/chats/' +
+        chatId +
+        '?idToken=' +
+        encodeURIComponent(idToken)
+      );
+
       const data = await res.json();
+
       if (!res.ok || !data.chat) return;
 
       currentChatId = chatId;
-      messages = data.chat.messages.map((m) => ({ role: m.role, content: m.content }));
+
+      messages =
+        data.chat.messages.map(
+          (m) => ({
+            role: m.role,
+            content: m.content
+          })
+        );
+
       renderFullChat();
+
       closeSidebar();
+
       loadChatList();
+
     } catch (err) {
-      console.error('Load chat error:', err);
+
+      console.error(
+        'Load chat error:',
+        err
+      );
+
     }
+
   }
 
   function renderFullChat() {
+
     chatMain.innerHTML = '';
+
     if (messages.length === 0) {
+
       chatMain.innerHTML =
         '<div class="empty-state" id="emptyState">' +
           '<p>Seedha, honest aur anti-addictive AI madad — apni bhasha mein, apne andaaz mein.</p>' +
           '<div class="empty-mark">RUWAN AI</div>' +
         '</div>';
+
       return;
     }
+
     messages.forEach((m) => {
-      const div = document.createElement('div');
-      div.className = 'msg ' + (m.role === 'user' ? 'user' : 'ai');
+
+      const div =
+        document.createElement('div');
+
+      div.className =
+        'msg ' +
+        (m.role === 'user'
+          ? 'user'
+          : 'ai');
+
       div.textContent = m.content;
+
       chatMain.appendChild(div);
+
     });
-    chatMain.scrollTop = chatMain.scrollHeight;
+
+    chatMain.scrollTop =
+      chatMain.scrollHeight;
+
   }
 
   function startNewChat() {
+
     currentChatId = null;
     messages = [];
+
     renderFullChat();
+
     closeSidebar();
+
     loadChatList();
+
   }
-  newChatBtn.addEventListener('click', startNewChat);
+
+  newChatBtn.addEventListener(
+    'click',
+    startNewChat
+  );
 
   loadChatList();
 
-  // ---------- 1. AUTOMATIC MODE DETECTION (keyword based) ----------
+
+  // ---------- AUTOMATIC MODE DETECTION ----------
+
   const MODE_KEYWORDS = {
-    navigation: ['route', 'kaise jau', 'kaise jaun', 'metro', 'bus se', 'airport', 'station', 'address', 'location', 'direction', 'road', 'nearest', 'paas mein'],
-    college: ['admission', 'college', 'university', 'entrance exam', 'eligibility', 'scholarship', 'fees', 'deadline', 'application form'],
-    career: ['career', 'job', 'resume', 'interview', 'skill', 'course', 'roadmap', 'salary', 'internship'],
-    professional: ['business', 'company', 'client', 'email likho', 'report banao', 'meeting', 'proposal', 'marketing'],
-    learning: ['padhna', 'homework', 'exam', 'subject', 'explain', 'samjhao', 'notes banao', 'mcq', 'quiz', 'flashcard', 'concept'],
-    research: ['research', 'compare karo', 'analysis', 'detailed', 'latest news', 'study batao', 'sources', 'in depth']
+
+    navigation: [
+      'route',
+      'kaise jau',
+      'kaise jaun',
+      'metro',
+      'bus se',
+      'airport',
+      'station',
+      'address',
+      'location',
+      'direction',
+      'road',
+      'nearest',
+      'paas mein'
+    ],
+
+    college: [
+      'admission',
+      'college',
+      'university',
+      'entrance exam',
+      'eligibility',
+      'scholarship',
+      'fees',
+      'deadline',
+      'application form'
+    ],
+
+    career: [
+      'career',
+      'job',
+      'resume',
+      'interview',
+      'skill',
+      'course',
+      'roadmap',
+      'salary',
+      'internship'
+    ],
+
+    professional: [
+      'business',
+      'company',
+      'client',
+      'email likho',
+      'report banao',
+      'meeting',
+      'proposal',
+      'marketing'
+    ],
+
+    learning: [
+      'padhna',
+      'homework',
+      'exam',
+      'subject',
+      'explain',
+      'samjhao',
+      'notes banao',
+      'mcq',
+      'quiz',
+      'flashcard',
+      'concept'
+    ],
+
+    research: [
+      'research',
+      'compare karo',
+      'analysis',
+      'detailed',
+      'latest news',
+      'study batao',
+      'sources',
+      'in depth'
+    ]
+
   };
 
   function detectMode(text) {
-    const lower = text.toLowerCase();
-    for (const mode in MODE_KEYWORDS) {
-      if (MODE_KEYWORDS[mode].some(kw => lower.includes(kw))) {
+
+    const lower =
+      text.toLowerCase();
+
+    for (
+      const mode in MODE_KEYWORDS
+    ) {
+
+      if (
+        MODE_KEYWORDS[mode].some(
+          kw => lower.includes(kw)
+        )
+      ) {
+
         return mode;
+
       }
+
     }
+
     return 'general';
+
   }
 
   const MODE_LABELS = {
+
     general: '',
-    professional: 'Professional mode',
-    college: 'College mode',
-    research: 'Research mode (web search on)',
-    navigation: 'Navigation mode',
-    career: 'Career mode',
-    learning: 'Learning mode'
+
+    professional:
+      'Professional mode',
+
+    college:
+      'College mode',
+
+    research:
+      'Research mode (web search on)',
+
+    navigation:
+      'Navigation mode',
+
+    career:
+      'Career mode',
+
+    learning:
+      'Learning mode'
+
   };
 
-  // ---------- 2. VOICE INPUT (Speech to Text) ----------
+
+  // ---------- VOICE INPUT ----------
+
   let recognition = null;
   let isRecording = false;
-  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  const SpeechRecognitionAPI =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
   if (SpeechRecognitionAPI) {
-    recognition = new SpeechRecognitionAPI();
+
+    recognition =
+      new SpeechRecognitionAPI();
+
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'hi-IN';
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      messageInput.value = (messageInput.value + ' ' + transcript).trim();
-      messageInput.dispatchEvent(new Event('input'));
-    };
+    recognition.onresult =
+      (event) => {
+
+        const transcript =
+          event.results[0][0].transcript;
+
+        messageInput.value =
+          (
+            messageInput.value +
+            ' ' +
+            transcript
+          ).trim();
+
+        messageInput.dispatchEvent(
+          new Event('input')
+        );
+
+      };
 
     recognition.onend = () => {
+
       isRecording = false;
-      micBtn.classList.remove('recording');
+
+      micBtn.classList.remove(
+        'recording'
+      );
+
     };
 
     recognition.onerror = () => {
+
       isRecording = false;
-      micBtn.classList.remove('recording');
+
+      micBtn.classList.remove(
+        'recording'
+      );
+
     };
+
   }
 
-  micBtn.addEventListener('click', () => {
-    if (!recognition) {
-      alert('Ye browser voice input support nahi karta. Chrome try karein.');
+  micBtn.addEventListener(
+    'click',
+    () => {
+
+      if (!recognition) {
+
+        alert(
+          'Ye browser voice input support nahi karta. Chrome try karein.'
+        );
+
+        return;
+
+      }
+
+      if (isRecording) {
+
+        recognition.stop();
+
+        isRecording = false;
+
+        micBtn.classList.remove(
+          'recording'
+        );
+
+      } else {
+
+        recognition.start();
+
+        isRecording = true;
+
+        micBtn.classList.add(
+          'recording'
+        );
+
+      }
+
+    }
+  );
+
+
+  // ---------- VOICE OUTPUT ----------
+
+  function speak(text) {
+
+    if (
+      !voiceOutputOn ||
+      !window.speechSynthesis
+    ) {
       return;
     }
-    if (isRecording) {
-      recognition.stop();
-      isRecording = false;
-      micBtn.classList.remove('recording');
-    } else {
-      recognition.start();
-      isRecording = true;
-      micBtn.classList.add('recording');
-    }
-  });
 
-  // ---------- 3. VOICE OUTPUT (Text to Speech) ----------
-  function speak(text) {
-    if (!voiceOutputOn || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
+
+    const utter =
+      new SpeechSynthesisUtterance(text);
+
     utter.lang = 'hi-IN';
-    window.speechSynthesis.speak(utter);
+
+    window.speechSynthesis.speak(
+      utter
+    );
+
   }
 
-  voiceOutBtn.addEventListener('click', () => {
-    voiceOutputOn = !voiceOutputOn;
-    voiceOutBtn.classList.toggle('active', voiceOutputOn);
-    if (!voiceOutputOn) window.speechSynthesis.cancel();
-  });
+  voiceOutBtn.addEventListener(
+    'click',
+    () => {
 
-  // ---------- 4. CAMERA & ATTACHMENT ----------
-  cameraBtn.addEventListener('click', () => cameraInput.click());
-  attachBtn.addEventListener('click', () => attachInput.click());
+      voiceOutputOn =
+        !voiceOutputOn;
+
+      voiceOutBtn.classList.toggle(
+        'active',
+        voiceOutputOn
+      );
+
+      if (!voiceOutputOn) {
+
+        window.speechSynthesis.cancel();
+
+      }
+
+    }
+  );
+
+
+  // ---------- CAMERA & ATTACHMENT ----------
+
+  cameraBtn.addEventListener(
+    'click',
+    () => cameraInput.click()
+  );
+
+  attachBtn.addEventListener(
+    'click',
+    () => attachInput.click()
+  );
 
   function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+
+    return new Promise(
+      (resolve, reject) => {
+
+        const reader =
+          new FileReader();
+
+        reader.onload = () =>
+          resolve(
+            reader.result.split(',')[1]
+          );
+
+        reader.onerror = reject;
+
+        reader.readAsDataURL(file);
+
+      }
+    );
+
   }
 
   async function handleFileSelect(file) {
+
     if (!file) return;
 
     if (file.type === 'text/plain') {
-      const text = await file.text();
-      messageInput.value += (messageInput.value ? '\n\n' : '') + '[Attached file: ' + file.name + ']\n' + text;
-      messageInput.dispatchEvent(new Event('input'));
+
+      const text =
+        await file.text();
+
+      messageInput.value +=
+        (
+          messageInput.value
+            ? '\n\n'
+            : ''
+        ) +
+        '[Attached file: ' +
+        file.name +
+        ']\n' +
+        text;
+
+      messageInput.dispatchEvent(
+        new Event('input')
+      );
+
       return;
+
     }
 
     if (file.type.startsWith('image/')) {
-      const base64 = await fileToBase64(file);
-      pendingAttachment = { mimeType: file.type, data: base64, name: file.name };
-      renderAttachmentPreview(URL.createObjectURL(file));
+
+      const base64 =
+        await fileToBase64(file);
+
+      pendingAttachment = {
+        mimeType: file.type,
+        data: base64,
+        name: file.name
+      };
+
+      renderAttachmentPreview(
+        URL.createObjectURL(file)
+      );
+
       return;
+
     }
 
-    alert('PDF/DOC files abhi directly nahi padhi ja sakti. Image ya .txt file try karein.');
+    alert(
+      'PDF/DOC files abhi directly nahi padhi ja sakti. Image ya .txt file try karein.'
+    );
+
   }
 
-  function renderAttachmentPreview(imgUrl) {
+  function renderAttachmentPreview(
+    imgUrl
+  ) {
+
     attachmentPreview.innerHTML =
       '<div class="attachment-preview">' +
-        '<img src="' + imgUrl + '" alt="">' +
+        '<img src="' +
+        imgUrl +
+        '" alt="">' +
         '<span>Photo attach ki gayi hai</span>' +
         '<span class="remove-att" id="removeAttBtn">✕</span>' +
       '</div>';
-    document.getElementById('removeAttBtn').addEventListener('click', () => {
-      pendingAttachment = null;
-      attachmentPreview.innerHTML = '';
-    });
+
+    document
+      .getElementById('removeAttBtn')
+      .addEventListener(
+        'click',
+        () => {
+
+          pendingAttachment = null;
+
+          attachmentPreview.innerHTML =
+            '';
+
+        }
+      );
+
   }
 
-  cameraInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
-  attachInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+  cameraInput.addEventListener(
+    'change',
+    (e) =>
+      handleFileSelect(
+        e.target.files[0]
+      )
+  );
+
+  attachInput.addEventListener(
+    'change',
+    (e) =>
+      handleFileSelect(
+        e.target.files[0]
+      )
+  );
+
 
   // ---------- Google idToken decode ----------
+
   function parseJwt(token) {
+
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+
+      const base64Url =
+        token.split('.')[1];
+
+      const base64 =
+        base64Url
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+
+      const jsonPayload =
+        decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(
+              c =>
+                '%' +
+                (
+                  '00' +
+                  c.charCodeAt(0)
+                    .toString(16)
+                ).slice(-2)
+            )
+            .join('')
+        );
+
+      return JSON.parse(
+        jsonPayload
       );
-      return JSON.parse(jsonPayload);
+
     } catch (e) {
+
       return null;
+
     }
+
   }
 
-  const userInfo = parseJwt(idToken);
-  const userNameEl = document.getElementById('userName');
-  const userAvatarEl = document.getElementById('userAvatar');
+  const userInfo =
+    parseJwt(idToken);
+
+  const userNameEl =
+    document.getElementById(
+      'userName'
+    );
+
+  const userAvatarEl =
+    document.getElementById(
+      'userAvatar'
+    );
 
   if (userInfo) {
-    const displayName = userInfo.name || userInfo.email || 'User';
-    userNameEl.textContent = displayName;
-    userNameEl.title = userInfo.email || '';
-    sidebarUserName.textContent = displayName;
-    sidebarUserEmail.textContent = userInfo.email || '';
+
+    const displayName =
+      userInfo.name ||
+      userInfo.email ||
+      'User';
+
+    userNameEl.textContent =
+      displayName;
+
+    userNameEl.title =
+      userInfo.email || '';
+
+    sidebarUserName.textContent =
+      displayName;
+
+    sidebarUserEmail.textContent =
+      userInfo.email || '';
+
     if (userInfo.picture) {
-      userAvatarEl.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
-      sidebarAvatar.innerHTML = '<img src="' + userInfo.picture + '" alt="">';
+
+      userAvatarEl.innerHTML =
+        '<img src="' +
+        userInfo.picture +
+        '" alt="">';
+
+      sidebarAvatar.innerHTML =
+        '<img src="' +
+        userInfo.picture +
+        '" alt="">';
+
     } else {
-      userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
-      sidebarAvatar.textContent = displayName.charAt(0).toUpperCase();
+
+      userAvatarEl.textContent =
+        displayName
+          .charAt(0)
+          .toUpperCase();
+
+      sidebarAvatar.textContent =
+        displayName
+          .charAt(0)
+          .toUpperCase();
+
     }
+
   } else {
-    userNameEl.textContent = 'User';
-    sidebarUserName.textContent = 'User';
+
+    userNameEl.textContent =
+      'User';
+
+    sidebarUserName.textContent =
+      'User';
+
   }
 
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('ruwanIdToken');
-    window.location.href = '/';
-  });
 
-  messageInput.addEventListener('input', () => {
-    messageInput.style.height = 'auto';
-    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-  });
+  logoutBtn.addEventListener(
+    'click',
+    () => {
 
-  messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      localStorage.removeItem(
+        'ruwanIdToken'
+      );
+
+      window.location.href = '/';
+
     }
-  });
+  );
 
-  sendBtn.addEventListener('click', sendMessage);
 
-  function addBubble(role, text) {
-    const existingEmpty = document.getElementById('emptyState');
-    if (existingEmpty) existingEmpty.remove();
-    const div = document.createElement('div');
-    div.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+  messageInput.addEventListener(
+    'input',
+    () => {
+
+      messageInput.style.height =
+        'auto';
+
+      messageInput.style.height =
+        Math.min(
+          messageInput.scrollHeight,
+          120
+        ) + 'px';
+
+    }
+  );
+
+
+  messageInput.addEventListener(
+    'keydown',
+    (e) => {
+
+      if (
+        e.key === 'Enter' &&
+        !e.shiftKey
+      ) {
+
+        e.preventDefault();
+
+        sendMessage();
+
+      }
+
+    }
+  );
+
+  sendBtn.addEventListener(
+    'click',
+    sendMessage
+  );
+
+
+  // ---------- MESSAGE BUBBLE ----------
+
+  function addBubble(
+    role,
+    text
+  ) {
+
+    const existingEmpty =
+      document.getElementById(
+        'emptyState'
+      );
+
+    if (existingEmpty) {
+      existingEmpty.remove();
+    }
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      'msg ' +
+      (
+        role === 'user'
+          ? 'user'
+          : 'ai'
+      );
+
     div.textContent = text;
+
     chatMain.appendChild(div);
-    chatMain.scrollTop = chatMain.scrollHeight;
+
+    chatMain.scrollTop =
+      chatMain.scrollHeight;
+
     return div;
+
   }
+
+
+  // ---------- THINKING MASCOT ----------
 
   function addThinking() {
-    const div = document.createElement('div');
-    div.className = 'thinking-mascot';
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      'thinking-mascot';
+
     div.innerHTML =
       '<svg width="34" height="34" viewBox="0 0 120 120">' +
+
         '<g class="mascotBob">' +
+
           '<circle cx="60" cy="64" r="46" fill="#FAEEDA" stroke="#D85A30" stroke-width="2"/>' +
+
           '<circle cx="46" cy="58" r="3" fill="#2A3540"/>' +
+
           '<path d="M39 55 Q46 50 53 55" fill="none" stroke="#2A3540" stroke-width="2" stroke-linecap="round"/>' +
+
           '<path d="M74 55 Q81 50 88 55" fill="none" stroke="#2A3540" stroke-width="2" stroke-linecap="round"/>' +
+
           '<path d="M50 78 Q60 86 70 78" fill="none" stroke="#993C1D" stroke-width="2.5" stroke-linecap="round"/>' +
+
           '<ellipse cx="42" cy="70" rx="6" ry="4" fill="#F0997B" opacity="0.55"/>' +
+
           '<ellipse cx="82" cy="70" rx="6" ry="4" fill="#F0997B" opacity="0.55"/>' +
+
         '</g>' +
+
         '<circle class="fd" cx="30" cy="18" r="3" fill="#F0997B"/>' +
+
         '<circle class="fd" cx="45" cy="8" r="3.5" fill="#F0997B"/>' +
+
         '<circle class="fd" cx="62" cy="6" r="3" fill="#F0997B"/>' +
+
       '</svg>' +
+
       '<span style="font-size: 13.5px; color: var(--ink-soft);">Ruwan soch raha hai</span>';
+
     chatMain.appendChild(div);
-    chatMain.scrollTop = chatMain.scrollHeight;
+
+    chatMain.scrollTop =
+      chatMain.scrollHeight;
+
     return div;
+
   }
+
+
+  // ==========================================================
+  // SEND MESSAGE
+  // ONLY CHANGE: STREAMING RESPONSE
+  // ==========================================================
 
   async function sendMessage() {
-    const text = messageInput.value.trim();
-    if (!text && !pendingAttachment) return;
 
-    const detectedMode = (modeSelect.value !== 'auto') ? modeSelect.value : detectMode(text);
-    activeModeTag.textContent = MODE_LABELS[detectedMode] || '';
+    const text =
+      messageInput.value.trim();
+
+    if (
+      !text &&
+      !pendingAttachment
+    ) {
+      return;
+    }
+
+    const detectedMode =
+      (
+        modeSelect.value !== 'auto'
+      )
+        ? modeSelect.value
+        : detectMode(text);
+
+    activeModeTag.textContent =
+      MODE_LABELS[detectedMode] || '';
 
     messageInput.value = '';
-    messageInput.style.height = 'auto';
+
+    messageInput.style.height =
+      'auto';
+
     sendBtn.disabled = true;
 
-    addBubble('user', text || '[Photo bheji gayi]');
-    messages.push({ role: 'user', content: text || 'Is photo ko dekh kar batao.' });
+    addBubble(
+      'user',
+      text || '[Photo bheji gayi]'
+    );
 
-    const attachmentToSend = pendingAttachment;
+    messages.push({
+      role: 'user',
+      content:
+        text ||
+        'Is photo ko dekh kar batao.'
+    });
+
+    const attachmentToSend =
+      pendingAttachment;
+
     pendingAttachment = null;
-    attachmentPreview.innerHTML = '';
 
-    const thinkingEl = addThinking();
+    attachmentPreview.innerHTML =
+      '';
+
+    const thinkingEl =
+      addThinking();
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messages,
-          language: languageSelect.value,
-          mode: detectedMode,
-          idToken: idToken,
-          image: attachmentToSend,
-          chatId: currentChatId
-        })
-      });
 
-      const data = await res.json();
-      thinkingEl.remove();
+      const res =
+        await fetch(
+          '/api/chat',
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'application/json'
+            },
+
+            body: JSON.stringify({
+
+              messages: messages,
+
+              language:
+                languageSelect.value,
+
+              mode:
+                detectedMode,
+
+              idToken:
+                idToken,
+
+              image:
+                attachmentToSend,
+
+              chatId:
+                currentChatId
+
+            })
+          }
+        );
+
+
+      // ---------- ERROR RESPONSE ----------
 
       if (!res.ok) {
+
+        const data =
+          await res.json()
+            .catch(
+              () => ({})
+            );
+
+        thinkingEl.remove();
+
         if (res.status === 401) {
-          localStorage.removeItem('ruwanIdToken');
-          window.location.href = '/';
+
+          localStorage.removeItem(
+            'ruwanIdToken'
+          );
+
+          window.location.href =
+            '/';
+
           return;
+
         }
-        addBubble('ai', data.error || 'Kuch galat ho gaya, dubara try karein.');
+
+        addBubble(
+          'ai',
+          data.error ||
+          'Kuch galat ho gaya, dubara try karein.'
+        );
+
         return;
+
       }
 
-      addBubble('ai', data.reply);
-      messages.push({ role: 'assistant', content: data.reply });
-      speak(data.reply);
 
-      if (data.chatId && data.chatId !== currentChatId) {
-        currentChatId = data.chatId;
+      // ======================================================
+      // STREAMING RESPONSE
+      // Server se text chunk-by-chunk receive hoga
+      // ======================================================
+
+      if (!res.body) {
+
+        thinkingEl.remove();
+
+        addBubble(
+          'ai',
+          'Streaming support available nahi hai. Dubara try karein.'
+        );
+
+        return;
+
       }
+
+
+      const reader =
+        res.body.getReader();
+
+      const decoder =
+        new TextDecoder();
+
+      let buffer = '';
+
+      let fullText = '';
+
+      let aiBubble = null;
+
+      let firstChunkReceived =
+        false;
+
+
+      // ---------- READ STREAM ----------
+
+      while (true) {
+
+        const {
+          done,
+          value
+        } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+
+        buffer +=
+          decoder.decode(
+            value,
+            {
+              stream: true
+            }
+          );
+
+
+        const lines =
+          buffer.split('\n');
+
+        buffer =
+          lines.pop() || '';
+
+
+        for (
+          const line of lines
+        ) {
+
+          if (
+            !line.startsWith(
+              'data: '
+            )
+          ) {
+            continue;
+          }
+
+
+          const payload =
+            line
+              .slice(6)
+              .trim();
+
+
+          if (!payload) {
+            continue;
+          }
+
+
+          if (
+            payload === '[DONE]'
+          ) {
+            continue;
+          }
+
+
+          try {
+
+            const parsed =
+              JSON.parse(
+                payload
+              );
+
+
+            // ---------- STREAM TEXT ----------
+
+            if (parsed.text) {
+
+              // First actual AI text received
+              if (!firstChunkReceived) {
+
+                firstChunkReceived =
+                  true;
+
+                thinkingEl.remove();
+
+                aiBubble =
+                  addBubble(
+                    'ai',
+                    ''
+                  );
+
+              }
+
+
+              fullText +=
+                parsed.text;
+
+
+              // Update same bubble
+              aiBubble.textContent =
+                fullText;
+
+
+              chatMain.scrollTop =
+                chatMain.scrollHeight;
+
+            }
+
+
+            // ---------- CHAT ID ----------
+
+            if (
+              parsed.chatId
+            ) {
+
+              currentChatId =
+                parsed.chatId;
+
+            }
+
+
+            // ---------- STREAM ERROR ----------
+
+            if (
+              parsed.error
+            ) {
+
+              console.error(
+                'Streaming error:',
+                parsed.error
+              );
+
+            }
+
+          } catch (err) {
+
+            console.warn(
+              'SSE chunk parse error:',
+              payload
+            );
+
+          }
+
+        }
+
+      }
+
+
+      // ---------- REMAINING BUFFER ----------
+
+      if (buffer.trim()) {
+
+        const remainingLines =
+          buffer.split('\n');
+
+        for (
+          const line
+          of remainingLines
+        ) {
+
+          if (
+            !line.startsWith(
+              'data: '
+            )
+          ) {
+            continue;
+          }
+
+          const payload =
+            line
+              .slice(6)
+              .trim();
+
+          if (
+            !payload ||
+            payload === '[DONE]'
+          ) {
+            continue;
+          }
+
+          try {
+
+            const parsed =
+              JSON.parse(
+                payload
+              );
+
+            if (parsed.text) {
+
+              if (
+                !firstChunkReceived
+              ) {
+
+                firstChunkReceived =
+                  true;
+
+                thinkingEl.remove();
+
+                aiBubble =
+                  addBubble(
+                    'ai',
+                    ''
+                  );
+
+              }
+
+              fullText +=
+                parsed.text;
+
+              aiBubble.textContent =
+                fullText;
+
+            }
+
+            if (
+              parsed.chatId
+            ) {
+
+              currentChatId =
+                parsed.chatId;
+
+            }
+
+          } catch (err) {
+
+            console.warn(
+              'Final SSE parse error:',
+              payload
+            );
+
+          }
+
+        }
+
+      }
+
+
+      // ---------- NO TEXT RECEIVED ----------
+
+      if (!firstChunkReceived) {
+
+        thinkingEl.remove();
+
+        addBubble(
+          'ai',
+          'Maaf karna, jawab generate nahi ho paaya.'
+        );
+
+        return;
+
+      }
+
+
+      // ---------- SAVE IN FRONTEND HISTORY ----------
+
+      messages.push({
+        role: 'assistant',
+        content: fullText
+      });
+
+
+      // ---------- VOICE OUTPUT ----------
+
+      speak(fullText);
+
+
+      // ---------- REFRESH SIDEBAR ----------
+
       loadChatList();
 
+
     } catch (err) {
+
       thinkingEl.remove();
-      addBubble('ai', 'Connection mein dikkat aa rahi hai, dubara try karein.');
-      console.error(err);
+
+      addBubble(
+        'ai',
+        'Connection mein dikkat aa rahi hai, dubara try karein.'
+      );
+
+      console.error(
+        'Streaming connection error:',
+        err
+      );
+
     } finally {
-      sendBtn.disabled = false;
+
+      sendBtn.disabled =
+        false;
+
     }
+
   }
+
 </script>
 
 </body>
